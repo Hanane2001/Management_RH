@@ -13,12 +13,58 @@ use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
+    private function generateOTP(): int{
+        return rand(100000, 999999);
+    }
+
+    private function sendOtpEmail(User $user, string $otp, string $subject): void{
+        Mail::raw("Your OTP is: $otp", function($message) use ($user, $subject) {
+            $message->to($user->email)->subject($subject);
+        });
+    }
+
+    private function setUserOtp(User $user, ?string $sessionKey = 'user_temp'): void{
+        $otp = $this->generateOTP();
+        $user->update([
+            'otp_code' => $otp,
+            'otp_expires_at' => now()->addMinutes(5)
+        ]);
+        
+        $this->sendOtpEmail($user, $otp, 'OTP Verification');
+        session([$sessionKey => $user->id]);
+    }
+
+    private function clearUserOtp(User $user): void{
+        $user->update([
+            'otp_code' => null,
+            'otp_expires_at' => null
+        ]);
+    }
+
+    private function getSessionUser(string $sessionKey): ?User{
+        $userId = session($sessionKey);
+        if (!$userId) {
+            return null;
+        }
+        
+        $user = User::find($userId);
+        if (!$user) {
+            session()->forget($sessionKey);
+            return null;
+        }
+        
+        return $user;
+    }
+
+    private function verifyOtpCode(User $user, string $otp): bool{
+        return $user->otp_code && $user->otp_code == $otp && now()->lessThan($user->otp_expires_at);
+    }
+
     public function showRegister(){
         return view('auth.register');
     }
 
     public function register(RegisterRequest $request){
-        $otp = rand(100000, 999999);
         $user = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
@@ -27,69 +73,117 @@ class AuthController extends Controller
             'phone' => $request->phone,
             'role_id' => 3,
             'department_id' => $request->department_id,
-            'otp_code' => $otp,
-            'otp_expires_at' => now()->addMinutes(5)
         ]);
 
-        Mail::raw("Your OTP is: $otp", function($message) use ($user){
-            $message->to($user->email)->subject('OTP Verification');
-        });
-        session(['user_temp' => $user->id]);
+        $this->setUserOtp($user);
         return redirect('/otp');
     }
-    public function showLogin()
-    {
+    public function showLogin(){
         return view('auth.login');
     }
 
-    public function login(LoginRequest $request)
-    {
+    public function login(LoginRequest $request){
         $user = User::where('email', $request->email)->first();
         if (!$user || !Hash::check($request->password, $user->password)) {
             return back()->with('error', 'Invalid credentials');
         }
-        $otp = rand(100000, 999999);
-        $user->update(['otp_code' => $otp,'otp_expires_at' => now()->addMinutes(5)]);
-
-        Mail::raw("Your OTP is: $otp", function ($message) use ($user) {
-            $message->to($user->email)->subject('OTP Verification');
-        });
-
-        session(['user_temp' => $user->id]);
-
+        $this->setUserOtp($user);
         return redirect('/otp');
     }
-    public function logout()
-    {
+
+    public function logout(){
         Auth::logout();
         Session::flush();
         return redirect('/login');
     }
 
-    //----------------------otp------------------------
+    //-------------------otp-------------------------
     public function showOtp()
     {
         return view('auth.otp');
     }
-    public function verifyOtp(Request $request)
-    {
-        $user = User::find(session('user_temp'));
+
+    public function verifyOtp(Request $request){
+        $user = $this->getSessionUser('user_temp');
+        
         if (!$user) {
             return redirect('/login')->with('error', 'Utilisateur non trouvé');
         }
 
-        if ($user->otp_code && $user->otp_code == $request->otp && now()->lessThan($user->otp_expires_at)) {
-            $user->update([
-                'email_verified_at' => now(),
-                'otp_code' => null,
-                'otp_expires_at' => null
-            ]);
-
+        if ($this->verifyOtpCode($user, $request->otp)) {
+            $user->update(['email_verified_at' => now()]);
+            $this->clearUserOtp($user);
+            
             Auth::login($user);
             session()->forget('user_temp');
-
+            
             return redirect('/dashboard');
         }
+        
         return back()->with('error', 'Invalid or expired OTP');
+    }
+
+    public function showForgotPassword(){
+        return view('auth.forgot');
+    }
+
+    public function resetPassword(Request $request){
+        $request->validate(['email' => 'required|email']);
+        
+        $user = User::where('email', $request->email)->first();
+        
+        if (!$user) {
+            return back()->with('error', 'Email not found');
+        }
+
+        $this->setUserOtp($user, 'reset_user');
+        return redirect('/reset-otp');
+    }
+
+    public function showResetOtp(){
+        return view('auth.reset-otp');
+    }
+
+    public function verifyResetOtp(Request $request){
+        $user = $this->getSessionUser('reset_user');
+        
+        if (!$user) {
+            return redirect('/login')->with('error', 'User not found');
+        }
+
+        if ($this->verifyOtpCode($user, $request->otp)) {
+            return redirect('/change-password');
+        }
+
+        return back()->with('error', 'Invalid or expired OTP');
+    }
+
+    public function showChangePassword(){
+        $user = $this->getSessionUser('reset_user');
+        
+        if (!$user) {
+            return redirect('/login');
+        }
+        
+        return view('auth.change-password');
+    }
+
+    public function changePassword(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|min:6|confirmed'
+        ]);
+        
+        $user = $this->getSessionUser('reset_user');
+        
+        if (!$user) {
+            return redirect('/login');
+        }
+        
+        $user->update(['password' => Hash::make($request->password)]);
+        $this->clearUserOtp($user);
+        session()->forget('reset_user');
+        
+        return redirect('/login')->with('success', 'Password changed');
     }
 }

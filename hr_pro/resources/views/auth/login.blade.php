@@ -21,6 +21,9 @@
             <input type="password" name="password" placeholder="Password" class="w-full p-2 border rounded" required>
             <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Login</button>
         </form>
+        <p class="mt-2 text-center">
+            <a href="/forgot-password" class="text-blue-600 hover:underline">Forgot Password?</a>
+        </p>
 
         <p class="mt-4 text-center">
             Don't have an account? <a href="/register" class="text-blue-600">Register</a>
