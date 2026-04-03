@@ -16,7 +16,7 @@ class User extends Authenticatable
     use HasFactory, Notifiable;
     const ROLE_ADMIN = 1;
     const ROLE_EMPLOYEE = 3;
-    
+
     protected $fillable = [
         'first_name',
         'last_name',
@@ -52,6 +52,14 @@ class User extends Authenticatable
     }
 
     public function isAdmin(){
-        return $this->role->name === 'admin';
+        return $this->role && $this->role->name === 'admin';
+    }
+
+    public function isManager(){
+        return $this->role && $this->role->name === 'manager';
+    }
+
+    public function department(){
+        return $this->belongsTo(Department::class);
     }
 }
