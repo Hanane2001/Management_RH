@@ -14,7 +14,9 @@ class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
-
+    const ROLE_ADMIN = 1;
+    const ROLE_EMPLOYEE = 3;
+    
     protected $fillable = [
         'first_name',
         'last_name',
@@ -45,5 +47,11 @@ class User extends Authenticatable
         'password' => 'hashed',
         'is_active' => 'boolean'
     ];
-    
+    public function role(){
+        return $this->belongsTo(Role::class);
+    }
+
+    public function isAdmin(){
+        return $this->role->name === 'admin';
+    }
 }
