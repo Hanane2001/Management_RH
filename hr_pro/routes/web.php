@@ -39,7 +39,7 @@ Route::middleware(['auth'])->group(function () {
     // Contracts
     Route::get('/contracts/create', [ContractController::class, 'create'])->name('contracts.create');
     Route::get('/contracts', [ContractController::class, 'index'])->name('contracts.index');
-    Route::get('/contracts/{id}', [ContractController::class, 'show'])->name('contracts.show');
+    Route::get('/contracts/{contract}', [ContractController::class, 'show'])->name('contracts.show');
 });
 
 // Routes pour Admin uniquement
@@ -51,7 +51,7 @@ Route::middleware(['auth', 'admin'])->group(function () {
 // Routes pour Manager uniquement
 Route::middleware(['auth', 'manager'])->group(function () {
     Route::post('/contracts', [ContractController::class, 'store'])->name('contracts.store');
-    Route::get('/contracts/{id}/edit', [ContractController::class, 'edit'])->name('contracts.edit');
-    Route::put('/contracts/{id}', [ContractController::class, 'update'])->name('contracts.update');
-    Route::delete('/contracts/{id}', [ContractController::class, 'destroy'])->name('contracts.destroy');
+    Route::get('/contracts/{contract}/edit', [ContractController::class, 'edit'])->name('contracts.edit');
+    Route::put('/contracts/{contract}', [ContractController::class, 'update'])->name('contracts.update');
+    Route::delete('/contracts/{contract}', [ContractController::class, 'destroy'])->name('contracts.destroy');
 });

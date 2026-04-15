@@ -66,7 +66,7 @@
         </div>
 
         <div class="form-group">
-            <label>Current Document:</label>
+            <label>Current Document:</label><br>
             @if($contract->document_path)
                 <a href="{{ asset('storage/'.$contract->document_path) }}" target="_blank">View Current Document</a>
             @else
