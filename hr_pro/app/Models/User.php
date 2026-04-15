@@ -74,4 +74,19 @@ class User extends Authenticatable
     public function contracts(){
         return $this->hasMany(Contract::class, 'employee_id');
     }
+    public function leaveBalances(){
+        return $this->hasMany(LeaveBalance::class, 'employee_id');
+    }
+
+    public function leaves(){
+        return $this->hasMany(Leave::class, 'employee_id');
+    }
+
+    public function getCurrentLeaveBalance(){
+        return $this->leaveBalances()->where('year', date('Y'))->first();
+    }
+    public function getTotalRemainingDays(){
+        $balance = $this->getCurrentLeaveBalance();
+        return $balance ? $balance->remaining_days : 0;
+    }
 }
