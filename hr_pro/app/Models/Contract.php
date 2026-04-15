@@ -1,0 +1,35 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+use App\Models\User;
+
+class Contract extends Model
+{
+    protected $fillable = [
+        'employee_id',
+        'type',
+        'base_salary',
+        'bonus',
+        'position',
+        'start_date',
+        'end_date',
+        'document_path'
+    ];
+
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
+        'base_salary' => 'decimal:2',
+        'bonus' => 'decimal:2'
+    ];
+
+    public function employee(){
+        return $this->belongsTo(User::class, 'employee_id');
+    }
+
+    public function isActive(): bool{
+        return !$this->end_date || $this->end_date > now();
+    }
+}

@@ -9,12 +9,16 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use App\Models\Contract;
+use App\Models\Department;
+use App\Models\Role;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
     const ROLE_ADMIN = 1;
+    const ROLE_MANAGER = 2;
     const ROLE_EMPLOYEE = 3;
 
     protected $fillable = [
@@ -59,7 +63,15 @@ class User extends Authenticatable
         return $this->role && $this->role->name === 'manager';
     }
 
+    public function isEmployee(): bool{
+        return $this->role && $this->role->name === 'employ';
+    }
+
     public function department(){
         return $this->belongsTo(Department::class);
+    }
+
+    public function contracts(){
+        return $this->hasMany(Contract::class, 'employee_id');
     }
 }
