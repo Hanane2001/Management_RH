@@ -7,6 +7,7 @@ use App\Http\Requests\StoreDepartmentRequest;
 use App\Http\Requests\UpdateDepartmentRequest;
 use App\Models\Department;
 use App\Models\User;
+use Illuminate\Support\Facades\Gate;
 
 class DepartmentController extends Controller
 {
@@ -15,7 +16,7 @@ class DepartmentController extends Controller
      */
     public function index()
     {
-        $departments = Department::all();
+        $departments = Department::with(['manager', 'employees'])->get();
         return view('department.index', compact('departments'));
     }
 
@@ -24,10 +25,11 @@ class DepartmentController extends Controller
      */
     public function create()
     {
-        $employees = User::whereHas ('role', function($q){
-            $q->where('name', 'employ');
-        })->get();
-        return view('department.create', compact('employees'));
+        if (Gate::denies('create', Department::class)) {
+            abort(403);
+        }
+        $managers = User::whereHas('role', fn($q) => $q->where('name', 'manager'))->get();
+        return view('department.create', compact('managers'));
     }
 
     /**
@@ -35,8 +37,11 @@ class DepartmentController extends Controller
      */
     public function store(StoreDepartmentRequest $request)
     {
-        Department::create($request->all());
-        return redirect()->route('departments.index');
+        if (Gate::denies('create', Department::class)) {
+            abort(403);
+        }
+        Department::create($request->validated());
+        return redirect()->route('departments.index')->with('success', 'Department created successfully');
     }
 
     /**
@@ -44,11 +49,11 @@ class DepartmentController extends Controller
      */
     public function show(string $id)
     {
-        if(!auth()->user()->isAdmin() && !auth()->user()->isManager()){
+        $department = Department::with(['manager', 'employees'])->findOrFail($id);
+        if (Gate::denies('view', $department)) {
             abort(403);
         }
-        $department = Department::findOrFail($id);
-        return view('departments.show', compact('department'));
+        return view('department.show', compact('department'));
     }
 
     /**
@@ -56,8 +61,12 @@ class DepartmentController extends Controller
      */
     public function edit(string $id)
     {
+        if (Gate::denies('update', Department::class)) {
+            abort(403);
+        }
         $department = Department::findOrFail($id);
-        return view('department.edit',compact('department'));
+        $managers = User::whereHas('role', fn($q) => $q->where('name', 'manager'))->get();
+        return view('department.edit', compact('department', 'managers'));
     }
 
     /**
@@ -65,9 +74,12 @@ class DepartmentController extends Controller
      */
     public function update(UpdateDepartmentRequest $request, string $id)
     {
+        if (Gate::denies('update', Department::class)) {
+            abort(403);
+        }
         $department = Department::findOrFail($id);
-        $department->update($request->all());
-        return redirect()->route('departments.index');
+        $department->update($request->validated());
+        return redirect()->route('departments.index')->with('success', 'Department updated successfully');
     }
 
     /**
@@ -75,7 +87,14 @@ class DepartmentController extends Controller
      */
     public function destroy(string $id)
     {
-        Department::destroy($id);
-        return redirect()->route('departments.index');
+        if (Gate::denies('delete', Department::class)) {
+            abort(403);
+        }
+        $department = Department::findOrFail($id);
+        if ($department->employees()->count() > 0) {
+            return back()->with('error', 'Cannot delete department with employees');
+        }
+        $department->delete();
+        return redirect()->route('departments.index')->with('success', 'Department deleted successfully');
     }
 }

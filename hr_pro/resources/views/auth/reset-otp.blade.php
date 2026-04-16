@@ -2,34 +2,47 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Verify Reset OTP</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reset OTP - HR_PRO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .otp-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-    <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h1 class="text-2xl font-bold mb-6 text-center">Verify Reset OTP</h1>
-
+<body>
+    <div class="otp-card">
+        <h2>Reset Password OTP</h2>
+        <p>Enter the 6-digit code sent to your email</p>
+        
         @if(session('error'))
-            <div class="bg-red-100 text-red-700 p-3 mb-4 rounded">
-                {{ session('error') }}
-            </div>
+            <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
-
-        <p class="text-gray-600 mb-4 text-center">
-            Please enter the OTP sent to your email address
-        </p>
-
-        <form action="/verify-reset-otp" method="POST" class="space-y-4">
+        
+        <form method="POST" action="{{ route('verify-reset-otp') }}">
             @csrf
-            <input type="text" name="otp" placeholder="Enter 6-digit OTP" class="w-full p-2 border rounded text-center text-lg" required maxlength="6">
-            <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
-                Verify OTP
-            </button>
+            
+            <div class="mb-4">
+                <input type="text" name="otp" class="form-control text-center" 
+                       maxlength="6" pattern="[0-9]{6}" style="font-size:24px;letter-spacing:5px" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-100">Verify OTP</button>
         </form>
-
-        <p class="mt-4 text-center">
-            <a href="/forgot-password" class="text-blue-600 hover:underline">Request New OTP</a>
-        </p>
     </div>
 </body>
 </html>

@@ -2,36 +2,50 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Forgot Password</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forgot Password - HR_PRO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .forgot-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-    <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h1 class="text-2xl font-bold mb-6 text-center">Forgot Password</h1>
-
+<body>
+    <div class="forgot-card">
+        <h2 class="text-center mb-4">Reset Password</h2>
+        <p class="text-muted text-center">Enter your email to receive OTP</p>
+        
         @if(session('error'))
-            <div class="bg-red-100 text-red-700 p-3 mb-4 rounded">
-                {{ session('error') }}
-            </div>
+            <div class="alert alert-danger">{{ session('error') }}</div>
         @endif
-
-        @if(session('success'))
-            <div class="bg-green-100 text-green-700 p-3 mb-4 rounded">
-                {{ session('success') }}
-            </div>
-        @endif
-
-        <form action="/reset-password" method="POST" class="space-y-4">
+        
+        <form method="POST" action="{{ route('reset-password') }}">
             @csrf
-            <input type="email" name="email" placeholder="Enter your email" class="w-full p-2 border rounded" required>
-            <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
-                Send Reset OTP
-            </button>
+            
+            <div class="mb-3">
+                <label>Email Address</label>
+                <input type="email" name="email" class="form-control" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-100">Send OTP</button>
         </form>
-
-        <p class="mt-4 text-center">
-            <a href="/login" class="text-blue-600 hover:underline">Back to Login</a>
-        </p>
+        
+        <div class="text-center mt-3">
+            <a href="{{ route('login') }}">Back to Login</a>
+        </div>
     </div>
 </body>
 </html>

@@ -5,15 +5,17 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
+use App\Models\Department;
 use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Requests\UpdateEmployeeRequest;
+use Illuminate\Support\Facades\Gate;
 
 
 class EmployeeController extends Controller
 {
     public function checkEmployee($employee){
         if(!$employee->role || $employee->role->name !== 'employ'){
-            abort(404);
+            abort(404, 'Employee not found');
         }
     }
     /**
@@ -21,7 +23,10 @@ class EmployeeController extends Controller
      */
     public function index()
     {
-        $employees = User::with('role')->where('role_id', User::ROLE_EMPLOYEE)->latest()->paginate(10);
+        if (Gate::denies('viewAny', User::class)) {
+            abort(403);
+        }
+        $employees = User::with(['role', 'department'])->whereHas('role', fn($q) => $q->where('name', 'employ'))->latest()->paginate(10);
         return view('employee.index', compact('employees'));
     }
 
@@ -30,7 +35,11 @@ class EmployeeController extends Controller
      */
     public function create()
     {
-        return view('employee.create');
+        if (Gate::denies('create', User::class)) {
+            abort(403);
+        }
+        $departments = Department::all();
+        return view('employee.create', compact('departments'));
     }
 
     /**
@@ -38,6 +47,9 @@ class EmployeeController extends Controller
      */
     public function store(StoreEmployeeRequest $request)
     {
+        if (Gate::denies('create', User::class)) {
+            abort(403);
+        }
         $employee = User::create([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
@@ -60,9 +72,18 @@ class EmployeeController extends Controller
      */
     public function show(string $id)
     {
-        $employee = User::with('role')->findOrFail($id);
+        $employee = User::with(['role', 'department', 'contracts', 'leaves'])->findOrFail($id);
         $this->checkEmployee($employee);
-        return view('employee.show', compact('employee'));
+        if (Gate::denies('view', $employee)) {
+            abort(403);
+        }
+        $activeContract = $employee->contracts()->whereNull('end_date')->first();
+        $totalLeaves = $employee->leaves()->count();
+        $pendingLeaves = $employee->leaves()->where('status', 'pending')->count();
+        $approvedLeaves = $employee->leaves()->where('status', 'approved')->count();
+        $currentBalance = $employee->getCurrentLeaveBalance();
+        
+        return view('employee.show', compact('employee', 'activeContract', 'totalLeaves', 'pendingLeaves', 'approvedLeaves', 'currentBalance'));
     }
 
     /**
@@ -72,7 +93,11 @@ class EmployeeController extends Controller
     {
         $employee = User::with('role')->findOrFail($id);
         $this->checkEmployee($employee);
-        return view('employee.edit', compact('employee'));
+        if (Gate::denies('update', $employee)) {
+            abort(403);
+        }
+        $departments = Department::all();
+        return view('employee.edit', compact('employee','departments'));
     }
 
     /**
@@ -82,6 +107,9 @@ class EmployeeController extends Controller
     {
         $employee = User::with('role')->findOrFail($id);
         $this->checkEmployee($employee);
+        if (Gate::denies('update', $employee)) {
+            abort(403);
+        }
         $employee->update([
             'first_name' => $request->first_name,
             'last_name' => $request->last_name,
@@ -103,6 +131,9 @@ class EmployeeController extends Controller
     {
         $employee = User::with('role')->findOrFail($id);
         $this->checkEmployee($employee);
+        if (Gate::denies('delete', $employee)) {
+            abort(403);
+        }
         if($employee->id == auth()->id()){
             return back()->with('error', 'You cannot delete yourself');
         }

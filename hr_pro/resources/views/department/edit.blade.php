@@ -1,16 +1,53 @@
-<h2>Edit Department</h2>
+@extends('layouts.app')
 
-<form action="{{ route('departments.update', $department->id) }}" method="POST">
-    @csrf
-    @method('PUT')
-
-    <input type="text" name="name" value="{{ $department->name }}"><br><br>
-
-    <textarea name="description">{{ $department->description }}</textarea><br><br>
-
-    <input type="number" name="manager_id" value="{{ $department->manager_id }}"><br><br>
-
-    <button type="submit">Update</button>
-</form>
-
-<a href="{{ route('departments.index') }}">Back</a>
+@section('content')
+<div class="container">
+    <h1 class="mb-4">Edit Department</h1>
+    
+    @if ($errors->any())
+        <div class="alert alert-danger">
+            <ul>
+                @foreach ($errors->all() as $error)
+                    <li>{{ $error }}</li>
+                @endforeach
+            </ul>
+        </div>
+    @endif
+    
+    <div class="card">
+        <div class="card-body">
+            <form method="POST" action="{{ route('departments.update', $department->id) }}">
+                @csrf
+                @method('PUT')
+                
+                <div class="mb-3">
+                    <label>Department Name *</label>
+                    <input type="text" name="name" class="form-control" value="{{ old('name', $department->name) }}" required>
+                </div>
+                
+                <div class="mb-3">
+                    <label>Description</label>
+                    <textarea name="description" class="form-control" rows="3">{{ old('description', $department->description) }}</textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label>Manager</label>
+                    <select name="manager_id" class="form-control">
+                        <option value="">Select Manager</option>
+                        @foreach($managers as $manager)
+                            <option value="{{ $manager->id }}" {{ old('manager_id', $department->manager_id) == $manager->id ? 'selected' : '' }}>
+                                {{ $manager->first_name }} {{ $manager->last_name }} ({{ $manager->email }})
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                
+                <div class="mt-3">
+                    <button type="submit" class="btn btn-primary">Update Department</button>
+                    <a href="{{ route('departments.index') }}" class="btn btn-secondary">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endsection

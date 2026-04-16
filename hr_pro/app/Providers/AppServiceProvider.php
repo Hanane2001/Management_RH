@@ -3,6 +3,17 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Gate;
+use App\Models\User;
+use App\Models\Contract;
+use App\Models\Leave;
+use App\Models\LeaveBalance;
+use App\Models\Department;
+use App\Policies\UserPolicy;
+use App\Policies\ContractPolicy;
+use App\Policies\LeavePolicy;
+use App\Policies\LeaveBalancePolicy;
+use App\Policies\DepartmentPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -19,6 +30,20 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(Contract::class, ContractPolicy::class);
+        Gate::policy(Leave::class, LeavePolicy::class);
+        Gate::policy(LeaveBalance::class, LeaveBalancePolicy::class);
+        Gate::policy(Department::class, DepartmentPolicy::class);
+
+        Gate::define('isAdmin', fn(User $user) => $user->isAdmin());
+        Gate::define('isManager', fn(User $user) => $user->isManager());
+        Gate::define('isEmployee', fn(User $user) => $user->isEmployee());
+
+        Gate::define('manage-contracts', fn(User $user) => $user->isAdmin() || $user->isManager());
+        Gate::define('manage-employees', fn(User $user) => $user->isAdmin());
+        Gate::define('manage-leaves', fn(User $user) => $user->isAdmin() || $user->isManager());
+        Gate::define('view-reports', fn(User $user) => $user->isAdmin() || $user->isManager());
+        Gate::define('manage-departments', fn(User $user) => $user->isAdmin());
     }
 }

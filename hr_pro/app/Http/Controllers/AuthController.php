@@ -18,9 +18,14 @@ class AuthController extends Controller
     }
 
     private function sendOtpEmail(User $user, string $otp, string $subject): void{
-        Mail::raw("Your OTP is: $otp", function ($message) use ($user, $subject) {
-            $message->to($user->email)->subject($subject);
-        });
+        try {
+            Mail::raw("Your OTP code is: $otp\n\nThis code will expire in 5 minutes.", function ($message) use ($user, $subject) {
+                $message->to($user->email)->subject($subject);
+            });
+        } catch (\Exception $e) {
+            \Log::error("Email sending failed: " . $e->getMessage());
+            \Log::info("OTP for {$user->email}: {$otp}");
+        }
     }
 
     private function setUserOtp(User $user, string $sessionKey = 'user_temp'): void{
@@ -70,6 +75,7 @@ class AuthController extends Controller
             'phone' => $request->phone,
             'role_id' => User::ROLE_EMPLOYEE,
             'department_id' => $request->department_id,
+            'is_active' => true,
         ]);
 
         $this->setUserOtp($user);

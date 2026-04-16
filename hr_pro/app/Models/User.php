@@ -55,18 +55,6 @@ class User extends Authenticatable
         return $this->belongsTo(Role::class);
     }
 
-    public function isAdmin(){
-        return $this->role && $this->role->name === 'admin';
-    }
-
-    public function isManager(){
-        return $this->role && $this->role->name === 'manager';
-    }
-
-    public function isEmployee(): bool{
-        return $this->role && $this->role->name === 'employ';
-    }
-
     public function department(){
         return $this->belongsTo(Department::class);
     }
@@ -82,11 +70,28 @@ class User extends Authenticatable
         return $this->hasMany(Leave::class, 'employee_id');
     }
 
+    public function isAdmin(): bool{
+        return $this->role_id === 1 || ($this->role && $this->role->name === 'admin');
+    }
+
+    public function isManager(): bool{
+        return $this->role_id === 2 || ($this->role && $this->role->name === 'manager');
+    }
+
+    public function isEmployee(): bool{
+        return $this->role_id === 3 || ($this->role && $this->role->name === 'employ');
+    }
+
     public function getCurrentLeaveBalance(){
         return $this->leaveBalances()->where('year', date('Y'))->first();
     }
+
     public function getTotalRemainingDays(){
         $balance = $this->getCurrentLeaveBalance();
         return $balance ? $balance->remaining_days : 0;
+    }
+
+    public function getFullName(){
+        return $this->first_name . ' ' . $this->last_name;
     }
 }

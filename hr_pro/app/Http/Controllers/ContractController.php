@@ -7,6 +7,7 @@ use App\Http\Requests\StoreContractRequest;
 use App\Http\Requests\UpdateContractRequest;
 use App\Models\User;
 use App\Models\Contract;
+use Illuminate\Support\Facades\Gate;
 
 class ContractController extends Controller
 {
@@ -17,7 +18,7 @@ class ContractController extends Controller
     {
         $user = auth()->user();
 
-        if ($user->isManager()) {
+        if (Gate::allows('isAdmin') || Gate::allows('isManager')) {
             $contracts = Contract::with('employee')->get();
         } else {
             $contracts = Contract::with('employee')->where('employee_id', $user->id)->get();
@@ -31,8 +32,7 @@ class ContractController extends Controller
      */
     public function create()
     {
-        $user = auth()->user();
-        if (!$user->isManager() && !$user->isAdmin()) {
+        if (Gate::denies('create', Contract::class)) {
             abort(403, 'Only managers can create contracts');
         }
 
@@ -47,19 +47,19 @@ class ContractController extends Controller
      */
     public function store(StoreContractRequest $request)
     {
-        if (!auth()->user()->isManager()) {
+        if(Gate::denies('create', Contract::class)){
             abort(403);
         }
 
         $data = $request->validated();
 
         if ($request->hasFile('document')) {
-            $data['document_path'] = $request->file('document')->store('contracts');
+            $data['document_path'] = $request->file('document')->store('contracts', 'public');
         }
 
         Contract::create($data);
 
-        return redirect()->route('contracts.index');
+        return redirect()->route('contracts.index')->with('success', 'Contract created successfully');
     }
 
     /**
@@ -67,10 +67,7 @@ class ContractController extends Controller
      */
     public function show(Contract $contract)
     {
-        $contract->load('employee');
-        $user = auth()->user();
-        
-        if ($user->isEmployee() && $contract->employee_id !== $user->id) {
+        if (Gate::denies('view', $contract)) {
             abort(403);
         }
         
@@ -82,7 +79,7 @@ class ContractController extends Controller
      */
     public function edit(Contract $contract)
     {
-        if (!auth()->user()->isManager() && !auth()->user()->isAdmin()) {
+        if (Gate::denies('update', $contract)) {
             abort(403);
         }
         
@@ -98,19 +95,19 @@ class ContractController extends Controller
      */
     public function update(UpdateContractRequest $request, Contract $contract)
     {
-        if (!auth()->user()->isManager() && !auth()->user()->isAdmin()) {
+        if (Gate::denies('update', $contract)) {
             abort(403);
         }
         
         $data = $request->validated();
         
         if ($request->hasFile('document')) {
-            $data['document_path'] = $request->file('document')->store('contracts');
+            $data['document_path'] = $request->file('document')->store('contracts', 'public');
         }
         
         $contract->update($data);
         
-        return redirect()->route('contracts.index');
+        return redirect()->route('contracts.index')->with('success', 'Contract updated successfully');
     }
 
     /**
@@ -118,12 +115,12 @@ class ContractController extends Controller
      */
     public function destroy(Contract $contract)
     {
-        if (!auth()->user()->isManager() && !auth()->user()->isAdmin()) {
+        if (Gate::denies('delete', $contract)) {
             abort(403);
         }
         
         $contract->delete();
         
-        return redirect()->route('contracts.index');
+        return redirect()->route('contracts.index')->with('success', 'Contract deleted successfully');
     }
 }

@@ -32,4 +32,8 @@ class Contract extends Model
     public function isActive(): bool{
         return !$this->end_date || $this->end_date > now();
     }
+
+    public function getTotalSalary(){
+        return $this->base_salary + $this->bonus;
+    }
 }

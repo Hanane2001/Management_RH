@@ -17,7 +17,7 @@ class IsAdmin
     public function handle(Request $request, Closure $next): Response
     {
         if(!Auth::check() || !Auth::user()->isAdmin()){
-            abort(403, 'Access denied');
+            abort(403, 'Access denied - Admin only');
         }
         return $next($request);
     }

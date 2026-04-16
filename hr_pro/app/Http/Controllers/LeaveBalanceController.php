@@ -5,7 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\LeaveBalance;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class LeaveBalanceController extends Controller
 {
@@ -14,8 +14,8 @@ class LeaveBalanceController extends Controller
      */
     public function index()
     {
-        if (!auth()->user()->isManager() && !auth()->user()->isAdmin()) {
-            abort(403, 'Accès non autorisé');
+        if (Gate::denies('viewAny', LeaveBalance::class)) {
+            abort(403);
         }
         $balances = LeaveBalance::with('employee')->orderBy('year', 'desc')->orderBy('remaining_days', 'desc')->paginate(20);
         return view('leave_balances.index', compact('balances'));
@@ -26,8 +26,8 @@ class LeaveBalanceController extends Controller
      */
     public function create()
     {
-        if (!auth()->user()->isAdmin()) {
-            abort(403, 'Seul l\'administrateur peut créer des soldes');
+        if (Gate::denies('create', LeaveBalance::class)) {
+            abort(403);
         }
         $employees = User::whereHas('role', function($q) {
             $q->where('name', 'employ');
@@ -40,7 +40,7 @@ class LeaveBalanceController extends Controller
      */
     public function store(Request $request)
     {
-        if (!auth()->user()->isAdmin()) {
+        if (Gate::denies('create', LeaveBalance::class)) {
             abort(403);
         }
         $request->validate([
@@ -51,7 +51,7 @@ class LeaveBalanceController extends Controller
         ]);
         $exists = LeaveBalance::where('employee_id', $request->employee_id)->where('year', $request->year)->exists();
         if ($exists) {
-            return back()->with('error', 'Un solde existe déjà pour cet employé pour l\'année ' . $request->year);
+            return back()->with('error', 'Un solde existe déjà pour cette année ');
         }
         $remaining_days = $request->total_days - $request->used_days;
         LeaveBalance::create([
@@ -69,16 +69,9 @@ class LeaveBalanceController extends Controller
      */
     public function show(LeaveBalance $leaveBalance)
     {
-        $user = auth()->user();
-        if ($user->isEmployee() && $leaveBalance->employee_id !== $user->id) {
+        if (Gate::denies('view', $leaveBalance)) {
             abort(403);
         }
-        
-        if (!$user->isManager() && !$user->isAdmin() && $leaveBalance->employee_id !== $user->id) {
-            abort(403);
-        }
-        
-        $leaveBalance->load('employee');
         return view('leave_balances.show', compact('leaveBalance'));
     }
 
@@ -87,8 +80,8 @@ class LeaveBalanceController extends Controller
      */
     public function edit(LeaveBalance $leaveBalance)
     {
-        if (!auth()->user()->isAdmin()) {
-            abort(403, 'Seul l\'administrateur peut modifier les soldes');
+        if (Gate::denies('update', $leaveBalance)) {
+            abort(403);
         }
         
         $employees = User::whereHas('role', function($q) {
@@ -103,7 +96,7 @@ class LeaveBalanceController extends Controller
      */
     public function update(Request $request, LeaveBalance $leaveBalance)
     {
-        if (!auth()->user()->isAdmin()) {
+        if (Gate::denies('update', $leaveBalance)) {
             abort(403);
         }
         
@@ -113,11 +106,6 @@ class LeaveBalanceController extends Controller
             'total_days' => 'required|integer|min:1|max:365',
             'used_days' => 'required|integer|min:0'
         ]);
-
-        $exists = LeaveBalance::where('employee_id', $request->employee_id)->where('year', $request->year)->where('id', '!=', $leaveBalance->id)->exists();
-        if ($exists) {
-            return back()->with('error', 'Un solde existe déjà pour cet employé pour l\'année ' . $request->year);
-        }
         $remaining_days = $request->total_days - $request->used_days;
         $leaveBalance->update([
             'employee_id' => $request->employee_id,
@@ -135,7 +123,7 @@ class LeaveBalanceController extends Controller
      */
     public function destroy(LeaveBalance $leaveBalance)
     {
-        if (!auth()->user()->isAdmin()) {
+        if (Gate::denies('delete', $leaveBalance)) {
             abort(403);
         }
         
@@ -151,10 +139,10 @@ class LeaveBalanceController extends Controller
         $balances = LeaveBalance::where('employee_id', $user->id)->orderBy('year', 'desc')->get();
         return view('leave_balances.my-balance', compact('currentBalance', 'balances'));
     }
-    
+
     public function initializeYear()
     {
-        if (!auth()->user()->isAdmin()) {
+        if (Gate::denies('initialize', LeaveBalance::class)) {
             abort(403);
         }
         
@@ -185,67 +173,37 @@ class LeaveBalanceController extends Controller
         
         return redirect()->route('leave-balances.index')->with('success', "Soldes initialisés: $created créés, $skipped existants");
     }
-
-    public function resetForNewYear(Request $request)
-    {
-        if (!auth()->user()->isAdmin()) {
-            abort(403);
-        }
-        
-        $request->validate([
-            'year' => 'required|integer|min:' . date('Y') . '|max:2030',
-            'default_days' => 'required|integer|min:1|max:365'
-        ]);
-        
-        $employees = User::whereHas('role', function($q) {
-            $q->where('name', 'employ');
-        })->get();
-        
-        $created = 0;
-        foreach ($employees as $employee) {
-            LeaveBalance::create([
-                'employee_id' => $employee->id,
-                'year' => $request->year,
-                'total_days' => $request->default_days,
-                'used_days' => 0,
-                'remaining_days' => $request->default_days
-            ]);
-            $created++;
-        }
-        
-        return redirect()->route('leave-balances.index')->with('success', "Soldes pour l'année {$request->year} créés pour $created employés");
-    }
     public function export()
     {
-        if (!auth()->user()->isManager() && !auth()->user()->isAdmin()) {
+        if (Gate::denies('export', LeaveBalance::class)) {
             abort(403);
         }
         
         $balances = LeaveBalance::with('employee')->where('year', date('Y'))->get();
         $filename = "soldes_conges_" . date('Y') . ".csv";
         $handle = fopen('php://temp', 'w');
-        fputcsv($handle, ['Employé', 'Email', 'Département', 'Total', 'Utilisés', 'Restant', 'Utilisation (%)']);
+        fputcsv($handle, ['Employé', 'Email', 'Département', 'Total', 'Utilisés', 'Restant', 'Utilisation']);
         foreach ($balances as $balance) {
             fputcsv($handle, [
-                $balance->employee->first_name . ' ' . $balance->employee->last_name,
+                $balance->employee->getFullName(),
                 $balance->employee->email,
                 $balance->employee->department->name ?? 'N/A',
                 $balance->total_days,
                 $balance->used_days,
                 $balance->remaining_days,
-                number_format($balance->getUsedPercentage(), 2)
+                number_format($balance->getUsedPercentage(), 2) . '%'
             ]);
         }
         
         rewind($handle);
         $csv = stream_get_contents($handle);
         fclose($handle);
-        return response($csv, 200)->header('Content-Type', 'text/csv')->header('Content-Disposition', 'attachment; filename="' . $filename . '"');
+        return response($csv, 200)->header('Content-Type', 'text/csv')->header('Content-Disposition', "attachment; filename=\"$filename\"");
     }
 
     public function addDays(Request $request, LeaveBalance $leaveBalance)
     {
-        if (!auth()->user()->isAdmin()) {
+        if (Gate::denies('addDays', LeaveBalance::class)) {
             abort(403);
         }
         
@@ -263,7 +221,7 @@ class LeaveBalanceController extends Controller
 
     public function statistics()
     {
-        if (!auth()->user()->isManager() && !auth()->user()->isAdmin()) {
+        if (Gate::denies('viewAny', LeaveBalance::class)) {
             abort(403);
         }
         

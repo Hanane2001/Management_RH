@@ -2,35 +2,56 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Change Password</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Change Password - HR_PRO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .password-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 450px;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-    <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h1 class="text-2xl font-bold mb-6 text-center">Change Password</h1>
-
+<body>
+    <div class="password-card">
+        <h2 class="text-center mb-4">Change Password</h2>
+        
         @if($errors->any())
-            <div class="bg-red-100 text-red-700 p-3 mb-4 rounded">
-                <ul class="list-disc list-inside">
+            <div class="alert alert-danger">
+                <ul class="mb-0">
                     @foreach($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
                 </ul>
             </div>
         @endif
-
-        <form action="/change-password" method="POST" class="space-y-4">
+        
+        <form method="POST" action="{{ route('change-password') }}">
             @csrf
-            <input type="password" name="password" placeholder="New Password" class="w-full p-2 border rounded" required minlength="6">
-            <input type="password" name="password_confirmation" placeholder="Confirm New Password" class="w-full p-2 border rounded" required>
-            <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">
-                Change Password
-            </button>
+            
+            <div class="mb-3">
+                <label>New Password</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            
+            <div class="mb-3">
+                <label>Confirm Password</label>
+                <input type="password" name="password_confirmation" class="form-control" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-100">Change Password</button>
         </form>
-
-        <p class="mt-4 text-center">
-            <a href="/login" class="text-blue-600 hover:underline">Back to Login</a>
-        </p>
     </div>
 </body>
 </html>

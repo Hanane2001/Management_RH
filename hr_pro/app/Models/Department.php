@@ -19,4 +19,8 @@ class Department extends Model
     public function employees(){
         return $this->hasMany(User::class);
     }
+
+    public function getEmployeeCount(){
+        return $this->employees()->count();
+    }
 }

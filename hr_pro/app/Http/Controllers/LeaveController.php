@@ -7,6 +7,7 @@ use App\Models\Leave;
 use App\Models\LeaveBalance;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 
 class LeaveController extends Controller
 {
@@ -99,7 +100,7 @@ class LeaveController extends Controller
 
     public function approve(Leave $leave)
     {
-        if (!auth()->user()->isManager() && !auth()->user()->isAdmin()) {
+        if (Gate::denies('process', $leave)) {
             abort(403);
         }
         if (!$leave->isPending()) {
@@ -132,7 +133,7 @@ class LeaveController extends Controller
 
     public function reject(Leave $leave)
     {
-        if (!auth()->user()->isManager() && !auth()->user()->isAdmin()) {
+        if (Gate::denies('process', $leave)) {
             abort(403);
         }
         if (!$leave->isPending()) {
@@ -157,13 +158,13 @@ class LeaveController extends Controller
 
     public function allBalances()
     {
-        if (!auth()->user()->isManager() && !auth()->user()->isAdmin()) {
+        if (Gate::denies('viewAny', LeaveBalance::class)) {
             abort(403);
         }
         $balances = LeaveBalance::with('employee')->where('year', date('Y'))->orderBy('remaining_days', 'desc')->paginate(20);
         return view('leaves.all-balances', compact('balances'));
     }
-    
+
     /**
      * Show the form for editing the specified resource.
      */

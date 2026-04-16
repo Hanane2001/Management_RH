@@ -16,9 +16,8 @@ class IsManager
     public function handle(Request $request, Closure $next): Response
     {
         if (!auth()->check() || !auth()->user()->isManager()) {
-            abort(403, 'Access denied');
+            abort(403, 'Access denied - Manager only');
         }
-
         return $next($request);
     }
 }

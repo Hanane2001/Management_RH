@@ -49,4 +49,13 @@ class Leave extends Model
     {
         return $this->status === 'rejected';
     }
+
+    public function getStatusBadge(){
+        return match($this->status) {
+            'pending' => '<span class="badge bg-warning">En attente</span>',
+            'approved' => '<span class="badge bg-success">Approuvé</span>',
+            'rejected' => '<span class="badge bg-danger">Refusé</span>',
+            default => '<span class="badge bg-secondary">Inconnu</span>'
+        };
+    }
 }

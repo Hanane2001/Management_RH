@@ -2,37 +2,89 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Register</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - HR_PRO</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 50px 0;
+        }
+        .register-card {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            width: 100%;
+            max-width: 550px;
+            margin: auto;
+        }
+        .btn-register {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 flex items-center justify-center h-screen">
-    <div class="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h1 class="text-2xl font-bold mb-6 text-center">Register</h1>
-
+<body>
+    <div class="register-card">
+        <h2 class="text-center mb-4">Create Account</h2>
+        
         @if($errors->any())
-            <div class="bg-red-100 text-red-700 p-3 mb-4 rounded">
-                <ul>
+            <div class="alert alert-danger">
+                <ul class="mb-0">
                     @foreach($errors->all() as $error)
                         <li>{{ $error }}</li>
                     @endforeach
                 </ul>
             </div>
         @endif
-
-        <form action="/register" method="POST" class="space-y-4">
+        
+        <form method="POST" action="{{ route('register') }}">
             @csrf
-            <input type="text" name="first_name" placeholder="First Name" class="w-full p-2 border rounded" required>
-            <input type="text" name="last_name" placeholder="Last Name" class="w-full p-2 border rounded" required>
-            <input type="email" name="email" placeholder="Email" class="w-full p-2 border rounded" required>
-            <input type="password" name="password" placeholder="Password" class="w-full p-2 border rounded" required>
-            <input type="password" name="password_confirmation" placeholder="Confirm Password" class="w-full p-2 border rounded" required>
-            <input type="text" name="phone" placeholder="Phone" class="w-full p-2 border rounded">
-            <button type="submit" class="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700">Register</button>
+            
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label>First Name</label>
+                    <input type="text" name="first_name" class="form-control" value="{{ old('first_name') }}" required>
+                </div>
+                
+                <div class="col-md-6 mb-3">
+                    <label>Last Name</label>
+                    <input type="text" name="last_name" class="form-control" value="{{ old('last_name') }}" required>
+                </div>
+            </div>
+            
+            <div class="mb-3">
+                <label>Email Address</label>
+                <input type="email" name="email" class="form-control" value="{{ old('email') }}" required>
+            </div>
+            
+            <div class="mb-3">
+                <label>Password</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            
+            <div class="mb-3">
+                <label>Confirm Password</label>
+                <input type="password" name="password_confirmation" class="form-control" required>
+            </div>
+            
+            <div class="mb-3">
+                <label>Phone (Optional)</label>
+                <input type="text" name="phone" class="form-control" value="{{ old('phone') }}">
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-register">Register</button>
         </form>
-
-        <p class="mt-4 text-center">
-            Already have an account? <a href="/login" class="text-blue-600">Login</a>
-        </p>
+        
+        <div class="text-center mt-3">
+            <a href="{{ route('login') }}">Already have an account? Login</a>
+        </div>
     </div>
 </body>
 </html>

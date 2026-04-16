@@ -43,4 +43,10 @@ class LeaveBalance extends Model
         if ($this->total_days == 0) return 0;
         return ($this->used_days / $this->total_days) * 100;
     }
+
+    public function getProgressBar(){
+        $percentage = $this->getUsedPercentage();
+        $color = $percentage > 80 ? 'danger' : ($percentage > 50 ? 'warning' : 'success');
+        return "<div class='progress'><div class='progress-bar bg-{$color}' style='width: {$percentage}%'>{$percentage}%</div></div>";
+    }
 }

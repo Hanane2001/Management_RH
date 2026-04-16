@@ -2,78 +2,85 @@
 
 @section('content')
 <div class="container">
-    <h1>Gestion des Congés</h1>
+    <h1 class="mb-4">Leave Requests</h1>
     
     <div class="mb-3">
-        <a href="{{ route('leaves.create') }}" class="btn btn-primary">Nouvelle demande</a>
-        <a href="{{ route('leaves.balance') }}" class="btn btn-info">Mon solde</a>
-        @if(auth()->user()->isManager() || auth()->user()->isAdmin())
-            <a href="{{ route('leaves.all-balances') }}" class="btn btn-secondary">Tous les soldes</a>
-        @endif
+        <a href="{{ route('leaves.create') }}" class="btn btn-primary">+ New Leave Request</a>
+        <a href="{{ route('leaves.balance') }}" class="btn btn-info">My Balance</a>
+        @can('isManager')
+            <a href="{{ route('leaves.all-balances') }}" class="btn btn-secondary">All Balances</a>
+        @endcan
     </div>
     
-    @if(session('success'))
-        <div class="alert alert-success">{{ session('success') }}</div>
-    @endif
-    
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Date demande</th>
-                @if(auth()->user()->isManager() || auth()->user()->isAdmin())
-                    <th>Employé</th>
-                @endif
-                <th>Type</th>
-                <th>Période</th>
-                <th>Durée</th>
-                <th>Statut</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach($leaves as $leave)
-            <tr>
-                <td>{{ $leave->request_date->format('d/m/Y') }}</td>
-                @if(auth()->user()->isManager() || auth()->user()->isAdmin())
-                    <td>{{ $leave->employee->first_name }} {{ $leave->employee->last_name }}</td>
-                @endif
-                <td>
-                    @if($leave->type == 'paid') Payé
-                    @elseif($leave->type == 'sick') Maladie
-                    @elseif($leave->type == 'unpaid') Non payé
-                    @else Exceptionnel
-                    @endif
-                </td>
-                <td>{{ $leave->start_date->format('d/m/Y') }} → {{ $leave->end_date->format('d/m/Y') }}</td>
-                <td>{{ $leave->duration }} jour(s)</td>
-                <td>
-                    @if($leave->status == 'pending')
-                        <span class="badge bg-warning">En attente</span>
-                    @elseif($leave->status == 'approved')
-                        <span class="badge bg-success">Approuvé</span>
-                    @else
-                        <span class="badge bg-danger">Refusé</span>
-                    @endif
-                </td>
-                <td>
-                    <a href="{{ route('leaves.show', $leave) }}" class="btn btn-sm btn-info">Voir</a>
-                    
-                    @if($leave->isPending() && (auth()->user()->isManager() || auth()->user()->isAdmin()))
-                        <form action="{{ route('leaves.approve', $leave) }}" method="POST" style="display:inline">
-                            @csrf
-                            <button type="submit" class="btn btn-sm btn-success">Approuver</button>
-                        </form>
-                        <form action="{{ route('leaves.reject', $leave) }}" method="POST" style="display:inline">
-                            @csrf
-                            <button type="submit" class="btn btn-sm btn-danger">Refuser</button>
-                        </form>
-                    @endif
-                </td>
-            </tr>
-            @endforeach
-        </tbody>
-    </table>
-    
-    {{ $leaves->links() }}
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            @canany(['isAdmin', 'isManager'])
+                                <th>Employee</th>
+                            @endcanany
+                            <th>Type</th>
+                            <th>Period</th>
+                            <th>Duration</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @forelse($leaves as $leave)
+                        <tr>
+                            <td>{{ $leave->request_date->format('d/m/Y') }}</td>
+                            @canany(['isAdmin', 'isManager'])
+                                <td>{{ $leave->employee->first_name }} {{ $leave->employee->last_name }}</td>
+                            @endcanany
+                            <td>
+                                @if($leave->type == 'paid') Paid
+                                @elseif($leave->type == 'sick') Sick
+                                @elseif($leave->type == 'unpaid') Unpaid
+                                @else Exceptional
+                                @endif
+                            </td>
+                            <td>{{ $leave->start_date->format('d/m/Y') }} → {{ $leave->end_date->format('d/m/Y') }}</td>
+                            <td>{{ $leave->duration }} day(s)</td>
+                            <td>
+                                @if($leave->status == 'pending')
+                                    <span class="badge bg-warning">Pending</span>
+                                @elseif($leave->status == 'approved')
+                                    <span class="badge bg-success">Approved</span>
+                                @else
+                                    <span class="badge bg-danger">Rejected</span>
+                                @endif
+                             </td>
+                            <td>
+                                <a href="{{ route('leaves.show', $leave) }}" class="btn btn-sm btn-info">View</a>
+                                @if($leave->isPending() && (auth()->user()->isManager() || auth()->user()->isAdmin()))
+                                    <form action="{{ route('leaves.approve', $leave) }}" method="POST" style="display:inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-success">Approve</button>
+                                    </form>
+                                    <form action="{{ route('leaves.reject', $leave) }}" method="POST" style="display:inline">
+                                        @csrf
+                                        <button type="submit" class="btn btn-sm btn-danger">Reject</button>
+                                    </form>
+                                @endif
+                             </td>
+                        </tr>
+                        @empty
+                            <tr>
+                                <td colspan="{{ auth()->user()->isAdmin() || auth()->user()->isManager() ? '7' : '6' }}" class="text-center">
+                                    No leave requests found
+                                </td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            
+            {{ $leaves->links() }}
+        </div>
+    </div>
 </div>
 @endsection
