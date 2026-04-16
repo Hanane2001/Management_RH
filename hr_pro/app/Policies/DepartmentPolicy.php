@@ -30,12 +30,12 @@ class DepartmentPolicy
         return $user->isAdmin();
     }
 
-    public function update(User $user, Department $department): bool
+    public function update(User $user, Department $department = null): bool
     {
         return $user->isAdmin();
     }
 
-    public function delete(User $user, Department $department): bool
+    public function delete(User $user, Department $department = null): bool
     {
         return $user->isAdmin();
     }
