@@ -10,6 +10,7 @@ use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\LeaveBalanceController;
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\AttendanceController;
 use Illuminate\Support\Facades\Gate;
 
 Route::get('/', function () {
@@ -70,6 +71,19 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
     Route::get('/employees/{employeeId}/documents', [DocumentController::class, 'employeeDocuments'])->name('documents.employee');
+
+    // Attendance
+    Route::get('/attendances', [AttendanceController::class, 'index'])->name('attendances.index');
+    Route::get('/attendances/report', [AttendanceController::class, 'report'])->name('attendances.report');
+    Route::get('/attendances/export', [AttendanceController::class, 'export'])->name('attendances.export');
+    Route::get('/attendances/create', [AttendanceController::class, 'create'])->name('attendances.create');
+    Route::post('/attendances', [AttendanceController::class, 'store'])->name('attendances.store');
+    Route::get('/attendances/{attendance}', [AttendanceController::class, 'show'])->name('attendances.show');
+    Route::get('/attendances/{attendance}/edit', [AttendanceController::class, 'edit'])->name('attendances.edit');
+    Route::put('/attendances/{attendance}', [AttendanceController::class, 'update'])->name('attendances.update');
+    Route::delete('/attendances/{attendance}', [AttendanceController::class, 'destroy'])->name('attendances.destroy');
+    Route::post('/attendances/check-in', [AttendanceController::class, 'checkIn'])->name('attendances.check-in');
+    Route::post('/attendances/check-out', [AttendanceController::class, 'checkOut'])->name('attendances.check-out');
 });
 
 Route::middleware(['auth', 'admin'])->group(function () {

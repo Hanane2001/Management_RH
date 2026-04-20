@@ -107,6 +107,11 @@
                                 📁 Documents
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('attendances.index') }}">
+                                ⏰ Attendance
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </nav>
