@@ -11,6 +11,7 @@ use App\Http\Controllers\LeaveBalanceController;
 use App\Http\Controllers\EvaluationController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\AttendanceController;
+use App\Http\Controllers\PayrollController;
 use Illuminate\Support\Facades\Gate;
 
 Route::get('/', function () {
@@ -84,6 +85,21 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/attendances/{attendance}', [AttendanceController::class, 'destroy'])->name('attendances.destroy');
     Route::post('/attendances/check-in', [AttendanceController::class, 'checkIn'])->name('attendances.check-in');
     Route::post('/attendances/check-out', [AttendanceController::class, 'checkOut'])->name('attendances.check-out');
+
+    // Payrolls
+    Route::get('/payrolls', [PayrollController::class, 'index'])->name('payrolls.index');
+    Route::get('/payrolls/create', [PayrollController::class, 'create'])->name('payrolls.create');
+    Route::post('/payrolls', [PayrollController::class, 'store'])->name('payrolls.store');
+    Route::get('/payrolls/{payroll}', [PayrollController::class, 'show'])->name('payrolls.show');
+    Route::get('/payrolls/{payroll}/edit', [PayrollController::class, 'edit'])->name('payrolls.edit');
+    Route::put('/payrolls/{payroll}', [PayrollController::class, 'update'])->name('payrolls.update');
+    Route::delete('/payrolls/{payroll}', [PayrollController::class, 'destroy'])->name('payrolls.destroy');
+    Route::get('/payrolls/export/csv', [PayrollController::class, 'export'])->name('payrolls.export');
+    Route::post('/payrolls/generate-from-contract', [PayrollController::class, 'generateFromContract'])->name('payrolls.generate-from-contract');
+    Route::post('/payrolls/generate-all', [PayrollController::class, 'generateAll'])->name('payrolls.generate-all');
+    Route::post('/payrolls/{payroll}/approve', [PayrollController::class, 'approve'])->name('payrolls.approve');
+    Route::post('/payrolls/{payroll}/mark-paid', [PayrollController::class, 'markAsPaid'])->name('payrolls.mark-paid');
+    Route::get('/payrolls/{payroll}/pdf', [PayrollController::class, 'generatePdf'])->name('payrolls.pdf');
 });
 
 Route::middleware(['auth', 'admin'])->group(function () {

@@ -112,6 +112,11 @@
                                 ⏰ Attendance
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('payrolls.index') }}">
+                                💰 Payroll
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </nav>

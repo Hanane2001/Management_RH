@@ -12,6 +12,7 @@ use App\Models\Department;
 use App\Models\Evaluation;
 use App\Models\Document;
 use App\Models\Attendance;
+use App\Models\Payroll;
 use App\Policies\UserPolicy;
 use App\Policies\ContractPolicy;
 use App\Policies\LeavePolicy;
@@ -20,6 +21,7 @@ use App\Policies\DepartmentPolicy;
 use App\Policies\EvaluationPolicy;
 use App\Policies\DocumentPolicy;
 use App\Policies\AttendancePolicy;
+use App\Policies\PayrollPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -44,6 +46,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Evaluation::class, EvaluationPolicy::class);
         Gate::policy(Document::class, DocumentPolicy::class);
         Gate::policy(Attendance::class, AttendancePolicy::class);
+        Gate::policy(Payroll::class, PayrollPolicy::class);
 
         Gate::define('isAdmin', fn(User $user) => $user->isAdmin());
         Gate::define('isManager', fn(User $user) => $user->isManager());
