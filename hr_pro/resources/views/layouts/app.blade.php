@@ -73,6 +73,23 @@
                             </ul>
                         </li>
                         
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                📊 Evaluations
+                            </a>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="{{ route('evaluations.index') }}">All Evaluations</a></li>
+                                @can('isManager')
+                                    <li><a class="dropdown-item" href="{{ route('evaluations.create') }}">New Evaluation</a></li>
+                                @endcan
+                                @can('isAdmin')
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="{{ route('evaluations.statistics') }}">Statistics</a></li>
+                                    <li><a class="dropdown-item" href="{{ route('evaluations.export') }}">Export CSV</a></li>
+                                @endcan
+                            </ul>
+                        </li>
+                        
                         @can('isAdmin')
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">

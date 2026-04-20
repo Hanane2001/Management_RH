@@ -68,5 +68,34 @@
             </div>
         </div>
     </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5>📊 Evaluations Overview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <h3>{{ $stats['total_evaluations'] ?? 0 }}</h3>
+                            <p>Total Evaluations</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h3>{{ number_format($stats['average_score'] ?? 0, 1) }}%</h3>
+                            <p>Average Score</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <h3 class="text-success">{{ $stats['excellent_count'] ?? 0 }}</h3>
+                            <p>Excellent (≥90%)</p>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <a href="{{ route('evaluations.index') }}" class="btn btn-sm btn-primary">View All</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection

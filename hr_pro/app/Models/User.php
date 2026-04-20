@@ -11,6 +11,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use App\Models\Contract;
 use App\Models\Department;
+use App\Models\Evaluation;
 use App\Models\Role;
 
 class User extends Authenticatable
@@ -68,6 +69,16 @@ class User extends Authenticatable
 
     public function leaves(){
         return $this->hasMany(Leave::class, 'employee_id');
+    }
+
+    public function evaluations()
+    {
+        return $this->hasMany(Evaluation::class, 'employee_id');
+    }
+
+    public function evaluationsGiven()
+    {
+        return $this->hasMany(Evaluation::class, 'evaluator_id');
     }
 
     public function isAdmin(): bool{

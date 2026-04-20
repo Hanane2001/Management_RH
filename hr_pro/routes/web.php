@@ -8,14 +8,14 @@ use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\ContractController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\LeaveBalanceController;
-// use App\Http\Middleware\IsAdmin;
-// use App\Http\Middleware\IsManager;
+use App\Http\Controllers\EvaluationController;
+use Illuminate\Support\Facades\Gate;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-// Auth routes
+// Auth 
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
@@ -30,6 +30,7 @@ Route::get('/change-password', [AuthController::class, 'showChangePassword'])->n
 Route::post('/change-password', [AuthController::class, 'changePassword']);
 
 Route::middleware(['auth'])->group(function () {
+    // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     
@@ -41,22 +42,32 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/contracts', [ContractController::class, 'index'])->name('contracts.index');
     Route::get('/contracts/{contract}', [ContractController::class, 'show'])->name('contracts.show');
 
-    // Leave
+    // Leaves
     Route::get('/leaves', [LeaveController::class, 'index'])->name('leaves.index');
     Route::get('/leaves/create', [LeaveController::class, 'create'])->name('leaves.create');
     Route::post('/leaves', [LeaveController::class, 'store'])->name('leaves.store');
     Route::get('/leaves/{leave}', [LeaveController::class, 'show'])->name('leaves.show');
     Route::get('/leaves/balance/my', [LeaveController::class, 'balance'])->name('leaves.balance');
 
-    // LeaveBalance
+    // Leave Balances
     Route::get('/my-balance', [LeaveBalanceController::class, 'myBalance'])->name('leave-balances.my');
+
+    // Evaluations
+    Route::get('/evaluations', [EvaluationController::class, 'index'])->name('evaluations.index');
+    Route::get('/evaluations/statistics', [EvaluationController::class, 'statistics'])->name('evaluations.statistics');
+    Route::get('/evaluations/export', [EvaluationController::class, 'export'])->name('evaluations.export');
+    Route::get('/evaluations/create', [EvaluationController::class, 'create'])->name('evaluations.create');
+    Route::get('/evaluations/{evaluation}', [EvaluationController::class, 'show'])->name('evaluations.show');
 });
 
-// Admin routes
 Route::middleware(['auth', 'admin'])->group(function () {
+    // Employees
     Route::resource('employees', EmployeeController::class);
+    
+    // Departments
     Route::resource('departments', DepartmentController::class)->except(['index', 'show']);
-
+    
+    // Leave Balances
     Route::get('/leave-balances', [LeaveBalanceController::class, 'index'])->name('leave-balances.index');
     Route::get('/leave-balances/create', [LeaveBalanceController::class, 'create'])->name('leave-balances.create');
     Route::post('/leave-balances', [LeaveBalanceController::class, 'store'])->name('leave-balances.store');
@@ -70,27 +81,28 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::get('/leave-balances/statistics', [LeaveBalanceController::class, 'statistics'])->name('leave-balances.statistics');
 });
 
-// Manager routes
 Route::middleware(['auth', 'manager'])->group(function () {
+    // Contracts
     Route::get('/contracts/create', [ContractController::class, 'create'])->name('contracts.create');
     Route::post('/contracts', [ContractController::class, 'store'])->name('contracts.store');
     Route::get('/contracts/{contract}/edit', [ContractController::class, 'edit'])->name('contracts.edit');
     Route::put('/contracts/{contract}', [ContractController::class, 'update'])->name('contracts.update');
     Route::delete('/contracts/{contract}', [ContractController::class, 'destroy'])->name('contracts.destroy');
 
+    // Leaves
     Route::post('/leaves/{leave}/approve', [LeaveController::class, 'approve'])->name('leaves.approve');
     Route::post('/leaves/{leave}/reject', [LeaveController::class, 'reject'])->name('leaves.reject');
     Route::get('/leaves/balances/all', [LeaveController::class, 'allBalances'])->name('leaves.all-balances');
-});
 
-Route::middleware(['auth'])->get('/check-permissions', function() {
-    $user = auth()->user();
-    return [
-        'user' => $user->email,
-        'isAdmin' => $user->isAdmin(),
-        'isManager' => $user->isManager(),
-        'isEmployee' => $user->isEmployee(),
-        'can_view_contracts' => Gate::allows('viewAny', App\Models\Contract::class),
-        'can_create_contracts' => Gate::allows('create', App\Models\Contract::class),
-    ];
+    // Leave Balances
+    Route::get('/leave-balances', [LeaveBalanceController::class, 'index'])->name('leave-balances.index');
+    Route::get('/leave-balances/{leaveBalance}', [LeaveBalanceController::class, 'show'])->name('leave-balances.show');
+    Route::get('/leave-balances/statistics', [LeaveBalanceController::class, 'statistics'])->name('leave-balances.statistics');
+    Route::get('/leave-balances/export/csv', [LeaveBalanceController::class, 'export'])->name('leave-balances.export');
+
+    // Evaluations
+    Route::post('/evaluations', [EvaluationController::class, 'store'])->name('evaluations.store');
+    Route::get('/evaluations/{evaluation}/edit', [EvaluationController::class, 'edit'])->name('evaluations.edit');
+    Route::put('/evaluations/{evaluation}', [EvaluationController::class, 'update'])->name('evaluations.update');
+    Route::delete('/evaluations/{evaluation}', [EvaluationController::class, 'destroy'])->name('evaluations.destroy');
 });

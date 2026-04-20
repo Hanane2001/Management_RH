@@ -9,11 +9,13 @@ use App\Models\Contract;
 use App\Models\Leave;
 use App\Models\LeaveBalance;
 use App\Models\Department;
+use App\Models\Evaluation;
 use App\Policies\UserPolicy;
 use App\Policies\ContractPolicy;
 use App\Policies\LeavePolicy;
 use App\Policies\LeaveBalancePolicy;
 use App\Policies\DepartmentPolicy;
+use App\Policies\EvaluationPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -35,6 +37,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Leave::class, LeavePolicy::class);
         Gate::policy(LeaveBalance::class, LeaveBalancePolicy::class);
         Gate::policy(Department::class, DepartmentPolicy::class);
+        Gate::policy(Evaluation::class, EvaluationPolicy::class);
 
         Gate::define('isAdmin', fn(User $user) => $user->isAdmin());
         Gate::define('isManager', fn(User $user) => $user->isManager());

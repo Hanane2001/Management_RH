@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\Contract;
 use App\Models\Leave;
 use App\Models\LeaveBalance;
+use App\Models\Evaluation;
 use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
@@ -34,6 +35,9 @@ class DashboardController extends Controller
             'approved_leaves' => Leave::where('status', 'approved')->count(),
             'total_leaves' => Leave::count(),
             'expiring_contracts' => Contract::where('end_date', '<=', now()->addMonths(1))->where('end_date', '>', now())->count(),
+            'total_evaluations' => Evaluation::count(),
+            'average_score' => Evaluation::avg('overall_score'),
+            'excellent_count' => Evaluation::where('overall_score', '>=', 90)->count(),
         ];
         
         $recent_employees = User::with('role')->whereHas('role', fn($q) => $q->where('name', 'employ'))->latest()->take(5)->get();
@@ -64,6 +68,7 @@ class DashboardController extends Controller
         $user = auth()->user();
         
         $currentBalance = LeaveBalance::where('employee_id', $user->id)->where('year', date('Y'))->first();
+            
         $stats = [
             'my_contracts' => Contract::where('employee_id', $user->id)->count(),
             'active_contract' => Contract::where('employee_id', $user->id)->whereNull('end_date')->first(),
@@ -73,6 +78,8 @@ class DashboardController extends Controller
             'leave_balance' => $currentBalance ? $currentBalance->remaining_days : 0,
             'total_leave_days' => $currentBalance ? $currentBalance->total_days : 0,
             'used_leave_days' => $currentBalance ? $currentBalance->used_days : 0,
+            'my_evaluations' => Evaluation::where('employee_id', $user->id)->count(),
+            'my_average_score' => Evaluation::where('employee_id', $user->id)->avg('overall_score'),
         ];
         
         $my_leaves = Leave::where('employee_id', $user->id)->latest()->take(5)->get();

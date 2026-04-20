@@ -58,5 +58,26 @@
             </ul>
         </div>
     </div>
+    
+    <div class="card mt-4">
+        <div class="card-header bg-primary text-white">
+            <h5>📊 My Evaluations</h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-4 text-center">
+                    <h3>{{ $stats['my_evaluations'] ?? 0 }}</h3>
+                    <p>Total Evaluations</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <h3>{{ number_format($stats['my_average_score'] ?? 0, 1) }}%</h3>
+                    <p>Average Score</p>
+                </div>
+                <div class="col-md-4 text-center">
+                    <a href="{{ route('evaluations.index') }}" class="btn btn-sm btn-primary">View My Evaluations</a>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 @endsection
