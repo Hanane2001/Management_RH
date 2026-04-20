@@ -117,6 +117,19 @@
                                 💰 Payroll
                             </a>
                         </li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                                🔔 Notifications
+                                <span id="notification-badge" class="badge bg-danger" style="display: none;">0</span>
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end" id="notifications-dropdown" style="width: 350px;">
+                                <li><h6 class="dropdown-header">Recent Notifications</h6></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li class="text-center" id="notifications-loading">Loading...</li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-center" href="{{ route('notifications.index') }}">View All Notifications</a></li>
+                            </ul>
+                        </li>
                     </ul>
                 </div>
             </nav>
@@ -153,7 +166,53 @@
             </main>
         </div>
     </div>
+    <script>
+        function loadNotifications() {
+            fetch('{{ route("notifications.recent") }}')
+                .then(response => response.json())
+                .then(data => {
+                    const dropdown = document.getElementById('notifications-dropdown');
+                    const badge = document.getElementById('notification-badge');
 
+                    if (data.unread_count > 0) {
+                        badge.style.display = 'inline-block';
+                        badge.textContent = data.unread_count > 9 ? '9+' : data.unread_count;
+                    } else {
+                        badge.style.display = 'none';
+                    }
+
+                    if (data.notifications.length === 0) {
+                        dropdown.innerHTML = `
+                            <li><h6 class="dropdown-header">Recent Notifications</h6></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li class="text-center text-muted py-3">No notifications</li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-center" href="{{ route('notifications.index') }}">View All Notifications</a></li>
+                        `;
+                    } else {
+                        let html = '<li><h6 class="dropdown-header">Recent Notifications</h6></li><li><hr class="dropdown-divider"></li>';
+                        data.notifications.forEach(notif => {
+                            html += `
+                                <li>
+                                    <a class="dropdown-item ${!notif.is_read ? 'bg-light' : ''}" href="/notifications/${notif.id}">
+                                        <div class="d-flex justify-content-between">
+                                            <strong>${notif.title}</strong>
+                                            <small class="text-muted">${new Date(notif.created_at).toLocaleDateString()}</small>
+                                        </div>
+                                        <small class="text-muted">${notif.message.substring(0, 80)}${notif.message.length > 80 ? '...' : ''}</small>
+                                    </a>
+                                </li>
+                                <li><hr class="dropdown-divider">`;
+                        });
+                        html += `<li><a class="dropdown-item text-center" href="{{ route('notifications.index') }}">View All Notifications</a></li>`;
+                        dropdown.innerHTML = html;
+                    }
+                });
+        }
+
+        loadNotifications();
+        setInterval(loadNotifications, 30000);
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

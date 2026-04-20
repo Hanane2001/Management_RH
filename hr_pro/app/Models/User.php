@@ -96,6 +96,16 @@ class User extends Authenticatable
         return $this->hasMany(Payroll::class, 'employee_id');
     }
 
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class, 'user_id');
+    }
+
+    public function unreadNotifications()
+    {
+        return $this->hasMany(Notification::class, 'user_id')->where('is_read', false);
+    }
+
     public function isAdmin(): bool{
         return $this->role_id === 1 || ($this->role && $this->role->name === 'admin');
     }
