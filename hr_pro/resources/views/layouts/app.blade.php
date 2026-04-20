@@ -102,6 +102,11 @@
                             </ul>
                         </li>
                         @endcan
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('documents.index') }}">
+                                📁 Documents
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </nav>

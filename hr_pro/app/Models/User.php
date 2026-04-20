@@ -81,6 +81,11 @@ class User extends Authenticatable
         return $this->hasMany(Evaluation::class, 'evaluator_id');
     }
 
+    public function documents()
+    {
+        return $this->hasMany(Document::class, 'employee_id');
+    }
+
     public function isAdmin(): bool{
         return $this->role_id === 1 || ($this->role && $this->role->name === 'admin');
     }

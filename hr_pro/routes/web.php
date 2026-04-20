@@ -9,6 +9,7 @@ use App\Http\Controllers\ContractController;
 use App\Http\Controllers\LeaveController;
 use App\Http\Controllers\LeaveBalanceController;
 use App\Http\Controllers\EvaluationController;
+use App\Http\Controllers\DocumentController;
 use Illuminate\Support\Facades\Gate;
 
 Route::get('/', function () {
@@ -58,6 +59,17 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/evaluations/export', [EvaluationController::class, 'export'])->name('evaluations.export');
     Route::get('/evaluations/create', [EvaluationController::class, 'create'])->name('evaluations.create');
     Route::get('/evaluations/{evaluation}', [EvaluationController::class, 'show'])->name('evaluations.show');
+
+    // Documents
+    Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
+    Route::get('/documents/create', [DocumentController::class, 'create'])->name('documents.create');
+    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
+    Route::get('/documents/{document}', [DocumentController::class, 'show'])->name('documents.show');
+    Route::get('/documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
+    Route::get('/documents/{document}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
+    Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
+    Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
+    Route::get('/employees/{employeeId}/documents', [DocumentController::class, 'employeeDocuments'])->name('documents.employee');
 });
 
 Route::middleware(['auth', 'admin'])->group(function () {
