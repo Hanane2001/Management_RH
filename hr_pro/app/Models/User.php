@@ -13,9 +13,11 @@ use App\Models\Contract;
 use App\Models\Department;
 use App\Models\Evaluation;
 use App\Models\Role;
+use App\Traits\Auditable;
 
 class User extends Authenticatable
 {
+    use Auditable;
     /** @use HasFactory<UserFactory> */
     use HasFactory, Notifiable;
     const ROLE_ADMIN = 1;

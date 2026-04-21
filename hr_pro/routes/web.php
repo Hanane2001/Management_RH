@@ -13,6 +13,7 @@ use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\NotificationController;
+use App\Http\Controllers\AuditLogController;
 use Illuminate\Support\Facades\Gate;
 
 Route::get('/', function () {
@@ -137,6 +138,15 @@ Route::middleware(['auth', 'admin'])->group(function () {
     Route::post('/leave-balances/{leaveBalance}/add-days', [LeaveBalanceController::class, 'addDays'])->name('leave-balances.add-days');
     Route::get('/leave-balances/export/csv', [LeaveBalanceController::class, 'export'])->name('leave-balances.export');
     Route::get('/leave-balances/statistics', [LeaveBalanceController::class, 'statistics'])->name('leave-balances.statistics');
+
+    // AuditLog
+    Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
+    Route::get('/audit-logs/dashboard', [AuditLogController::class, 'dashboard'])->name('audit-logs.dashboard');
+    Route::get('/audit-logs/{auditLog}', [AuditLogController::class, 'show'])->name('audit-logs.show');
+    Route::get('/audit-logs/export/csv', [AuditLogController::class, 'export'])->name('audit-logs.export');
+    Route::delete('/audit-logs/clean', [AuditLogController::class, 'clean'])->name('audit-logs.clean');
+    Route::get('/audit-logs/entity/{entityType}/{entityId}', [AuditLogController::class, 'forEntity'])->name('audit-logs.entity');
+    Route::get('/audit-logs/user/{userId}', [AuditLogController::class, 'forUser'])->name('audit-logs.user');
 });
 
 Route::middleware(['auth', 'manager'])->group(function () {

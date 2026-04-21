@@ -10,6 +10,7 @@ use App\Http\Requests\RegisterRequest;
 use App\Http\Requests\LoginRequest;
 use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Auth;
+use App\Services\AuditLogService;
 
 class AuthController extends Controller
 {
@@ -77,6 +78,7 @@ class AuthController extends Controller
             'department_id' => $request->department_id,
             'is_active' => true,
         ]);
+        AuditLogService::logCreate('User', $user);
 
         $this->setUserOtp($user);
         return redirect('/otp');
@@ -94,11 +96,16 @@ class AuthController extends Controller
         if (!$user->is_active) {
             return back()->with('error', 'Account disabled');
         }
+        AuditLogService::log('login', 'User', $user->id, null, ['email' => $user->email, 'status' => 'pending_otp']);
         $this->setUserOtp($user);
         return redirect('/otp');
     }
 
     public function logout(Request $request){
+        $user = auth()->user();
+        if ($user) {
+            AuditLogService::log('logout', 'User', $user->id, null, ['email' => $user->email]);
+        }
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
@@ -127,6 +134,7 @@ class AuthController extends Controller
             Auth::login($user);
             $request->session()->regenerate();
             session()->forget('user_temp');
+            AuditLogService::log('login_success', 'User', $user->id, null, ['email' => $user->email, 'status' => 'success']);
             return redirect('/dashboard');
         }
 
@@ -146,6 +154,7 @@ class AuthController extends Controller
         if (!$user) {
             return back()->with('error', 'Email not found');
         }
+        AuditLogService::log('password_reset_request', 'User', $user->id, null, ['email' => $user->email]);
 
         $this->setUserOtp($user, 'reset_user');
         return redirect('/reset-otp');
@@ -191,9 +200,11 @@ class AuthController extends Controller
         if (!$user) {
             return redirect('/login');
         }
+        $oldPassword = $user->password;
         $user->update([
             'password' => Hash::make($request->password)
         ]);
+        AuditLogService::logUpdate('User', $user, ['password' => '[HIDDEN]']);
         $this->clearUserOtp($user);
         session()->forget(['reset_user', 'reset_verified']);
         return redirect('/login')->with('success', 'Password changed successfully');

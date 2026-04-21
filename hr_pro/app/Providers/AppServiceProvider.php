@@ -14,6 +14,7 @@ use App\Models\Document;
 use App\Models\Attendance;
 use App\Models\Payroll;
 use App\Models\Notification;
+use App\Models\AuditLog;
 use App\Policies\UserPolicy;
 use App\Policies\ContractPolicy;
 use App\Policies\LeavePolicy;
@@ -24,6 +25,7 @@ use App\Policies\DocumentPolicy;
 use App\Policies\AttendancePolicy;
 use App\Policies\PayrollPolicy;
 use App\Policies\NotificationPolicy;
+use App\Policies\AuditLogPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -50,6 +52,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::policy(Attendance::class, AttendancePolicy::class);
         Gate::policy(Payroll::class, PayrollPolicy::class);
         Gate::policy(Notification::class, NotificationPolicy::class);
+        Gate::policy(AuditLog::class, AuditLogPolicy::class);
 
         Gate::define('isAdmin', fn(User $user) => $user->isAdmin());
         Gate::define('isManager', fn(User $user) => $user->isManager());
@@ -60,5 +63,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-leaves', fn(User $user) => $user->isAdmin() || $user->isManager());
         Gate::define('view-reports', fn(User $user) => $user->isAdmin() || $user->isManager());
         Gate::define('manage-departments', fn(User $user) => $user->isAdmin());
+        Gate::define('view-audit-logs', fn(User $user) => $user->isAdmin());
     }
 }

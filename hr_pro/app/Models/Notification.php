@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Traits\Auditable;
 
 class Notification extends Model
 {
+    use Auditable;
     protected $table = 'notifications';
     
     protected $fillable = [

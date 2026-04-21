@@ -130,6 +130,13 @@
                                 <li><a class="dropdown-item text-center" href="{{ route('notifications.index') }}">View All Notifications</a></li>
                             </ul>
                         </li>
+                        @can('isAdmin')
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('audit-logs.index') }}">
+                                📜 Audit Logs
+                            </a>
+                        </li>
+                        @endcan
                     </ul>
                 </div>
             </nav>
