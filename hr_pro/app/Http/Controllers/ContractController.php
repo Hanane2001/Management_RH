@@ -35,10 +35,7 @@ class ContractController extends Controller
         if (Gate::denies('create', Contract::class)) {
             abort(403, 'Only managers can create contracts');
         }
-
-        $employees = User::whereHas('role', function($q){
-            $q->where('name', 'employ');
-        })->get();
+        $employees = User::where('role_id', User::ROLE_EMPLOYEE)->get();
         return view('contracts.create', compact('employees'));
     }
 
@@ -82,10 +79,7 @@ class ContractController extends Controller
         if (Gate::denies('update', $contract)) {
             abort(403);
         }
-        
-        $employees = User::whereHas('role', fn($q) =>
-            $q->where('name', 'employ')
-        )->get();
+        $employees = User::where('role_id', User::ROLE_EMPLOYEE)->get();
         
         return view('contracts.edit', compact('contract', 'employees'));
     }

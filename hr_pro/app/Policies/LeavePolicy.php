@@ -34,10 +34,13 @@ class LeavePolicy
         return $user->isEmployee();
     }
 
-    public function process(User $user, Leave $leave): bool
+    public function process(User $user, ?Leave $leave = null): bool
     {
         if ($user->isAdmin()) return true;
         if ($user->isManager()) {
+            if ($leave === null) {
+                return true;
+            }
             return $leave->employee->department_id === $user->department_id;
         }
         return false;

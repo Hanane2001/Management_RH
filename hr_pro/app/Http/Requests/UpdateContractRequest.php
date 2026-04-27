@@ -12,7 +12,7 @@ class UpdateContractRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return auth()->check() && auth()->user()->isManager();
+        return auth()->user()->can('update', $this->route('contract'));
     }
 
     /**

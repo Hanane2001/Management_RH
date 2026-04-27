@@ -4,23 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>HR_PRO - @yield('title', 'Dashboard')</title>
+    <title>@yield('title', 'HR Management System')</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         .sidebar {
             min-height: 100vh;
-            background-color: #1D4ED8;
+            background-color: #2c3e50;
         }
         .sidebar .nav-link {
-            color: white;
+            color: #ecf0f1;
         }
         .sidebar .nav-link:hover {
-            background-color: #1e40af;
+            background-color: #34495e;
         }
-        .navbar-brand {
-            color: white !important;
+        .sidebar .nav-link.active {
+            background-color: #3498db;
+        }
+        .main-content {
+            padding: 20px;
+        }
+        .stats-card {
+            transition: transform 0.3s;
+        }
+        .stats-card:hover {
+            transform: translateY(-5px);
         }
     </style>
+    @stack('styles')
 </head>
 <body>
     <div class="container-fluid">
@@ -28,133 +39,95 @@
             <!-- Sidebar -->
             <nav class="col-md-2 d-md-block sidebar p-0">
                 <div class="position-sticky">
-                    <a class="navbar-brand d-block p-3 text-center" href="{{ route('dashboard') }}">
-                        <h4>HR_PRO</h4>
-                    </a>
+                    <div class="p-3 text-center text-white border-bottom">
+                        <h5>HR System</h5>
+                        <small>{{ auth()->user()->getFullName() }}</small>
+                    </div>
                     <ul class="nav flex-column">
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('dashboard') }}">
-                                📊 Dashboard
+                                <i class="fas fa-tachometer-alt"></i> Dashboard
                             </a>
                         </li>
-                        
-                        @can('isAdmin')
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('profile.show') }}">
+                                <i class="fas fa-user"></i> My Profile
+                            </a>
+                        </li>
+                        @can('viewAny', App\Models\User::class)
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('employees.index') }}">
-                                👥 Employees
+                                <i class="fas fa-users"></i> Employees
                             </a>
                         </li>
                         @endcan
-                        
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('departments.index') }}">
-                                🏢 Departments
+                                <i class="fas fa-building"></i> Departments
                             </a>
                         </li>
-                        
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('contracts.index') }}">
-                                📄 Contracts
+                                <i class="fas fa-file-signature"></i> Contracts
                             </a>
                         </li>
-                        
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                🏖️ Leaves
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('leaves.index') }}">
+                                <i class="fas fa-calendar-alt"></i> Leaves
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ route('leaves.index') }}">My Requests</a></li>
-                                <li><a class="dropdown-item" href="{{ route('leaves.create') }}">New Request</a></li>
-                                <li><a class="dropdown-item" href="{{ route('leaves.balance') }}">My Balance</a></li>
-                                @can('isManager')
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ route('leaves.all-balances') }}">All Balances</a></li>
-                                @endcan
-                            </ul>
                         </li>
-                        
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                📊 Evaluations
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('evaluations.index') }}">
+                                <i class="fas fa-star"></i> Evaluations
                             </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ route('evaluations.index') }}">All Evaluations</a></li>
-                                @can('isManager')
-                                    <li><a class="dropdown-item" href="{{ route('evaluations.create') }}">New Evaluation</a></li>
-                                @endcan
-                                @can('isAdmin')
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="{{ route('evaluations.statistics') }}">Statistics</a></li>
-                                    <li><a class="dropdown-item" href="{{ route('evaluations.export') }}">Export CSV</a></li>
-                                @endcan
-                            </ul>
                         </li>
-                        
-                        @can('isAdmin')
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                ⚙️ Leave Balances
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{{ route('leave-balances.index') }}">All Balances</a></li>
-                                <li><a class="dropdown-item" href="{{ route('leave-balances.create') }}">Create Balance</a></li>
-                                <li><a class="dropdown-item" href="{{ route('leave-balances.statistics') }}">Statistics</a></li>
-                            </ul>
-                        </li>
-                        @endcan
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('documents.index') }}">
-                                📁 Documents
+                                <i class="fas fa-folder"></i> Documents
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('attendances.index') }}">
-                                ⏰ Attendance
+                                <i class="fas fa-clock"></i> Attendance
                             </a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('payrolls.index') }}">
-                                💰 Payroll
+                                <i class="fas fa-money-bill"></i> Payrolls
                             </a>
                         </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                🔔 Notifications
-                                <span id="notification-badge" class="badge bg-danger" style="display: none;">0</span>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ route('notifications.index') }}">
+                                <i class="fas fa-bell"></i> Notifications
+                                @php
+                                    $unreadCount = auth()->user()->unreadNotifications()->count();
+                                @endphp
+                                @if($unreadCount > 0)
+                                    <span class="badge bg-danger rounded-pill">{{ $unreadCount }}</span>
+                                @endif
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end" id="notifications-dropdown" style="width: 350px;">
-                                <li><h6 class="dropdown-header">Recent Notifications</h6></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li class="text-center" id="notifications-loading">Loading...</li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-center" href="{{ route('notifications.index') }}">View All Notifications</a></li>
-                            </ul>
                         </li>
-                        @can('isAdmin')
+                        @can('viewAny', App\Models\AuditLog::class)
                         <li class="nav-item">
                             <a class="nav-link" href="{{ route('audit-logs.index') }}">
-                                📜 Audit Logs
+                                <i class="fas fa-history"></i> Audit Logs
                             </a>
                         </li>
                         @endcan
+                        <li class="nav-item mt-3">
+                            <form method="POST" action="{{ route('logout') }}">
+                                @csrf
+                                <button type="submit" class="nav-link text-danger bg-transparent border-0">
+                                    <i class="fas fa-sign-out-alt"></i> Logout
+                                </button>
+                            </form>
+                        </li>
                     </ul>
                 </div>
             </nav>
 
             <!-- Main content -->
-            <main class="col-md-10 ms-sm-auto px-md-4">
-                <nav class="navbar navbar-expand-lg navbar-light bg-light mb-4">
-                    <div class="container-fluid">
-                        <span class="navbar-brand">Welcome, {{ Auth::user()->first_name }}</span>
-                        <div class="ms-auto">
-                            <form method="POST" action="{{ route('logout') }}" class="d-inline">
-                                @csrf
-                                <button type="submit" class="btn btn-danger">Logout</button>
-                            </form>
-                        </div>
-                    </div>
-                </nav>
-
+            <main class="col-md-10 ms-sm-auto px-md-4 main-content">
                 @if(session('success'))
                     <div class="alert alert-success alert-dismissible fade show" role="alert">
                         {{ session('success') }}
@@ -173,53 +146,8 @@
             </main>
         </div>
     </div>
-    <script>
-        function loadNotifications() {
-            fetch('{{ route("notifications.recent") }}')
-                .then(response => response.json())
-                .then(data => {
-                    const dropdown = document.getElementById('notifications-dropdown');
-                    const badge = document.getElementById('notification-badge');
 
-                    if (data.unread_count > 0) {
-                        badge.style.display = 'inline-block';
-                        badge.textContent = data.unread_count > 9 ? '9+' : data.unread_count;
-                    } else {
-                        badge.style.display = 'none';
-                    }
-
-                    if (data.notifications.length === 0) {
-                        dropdown.innerHTML = `
-                            <li><h6 class="dropdown-header">Recent Notifications</h6></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li class="text-center text-muted py-3">No notifications</li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-center" href="{{ route('notifications.index') }}">View All Notifications</a></li>
-                        `;
-                    } else {
-                        let html = '<li><h6 class="dropdown-header">Recent Notifications</h6></li><li><hr class="dropdown-divider"></li>';
-                        data.notifications.forEach(notif => {
-                            html += `
-                                <li>
-                                    <a class="dropdown-item ${!notif.is_read ? 'bg-light' : ''}" href="/notifications/${notif.id}">
-                                        <div class="d-flex justify-content-between">
-                                            <strong>${notif.title}</strong>
-                                            <small class="text-muted">${new Date(notif.created_at).toLocaleDateString()}</small>
-                                        </div>
-                                        <small class="text-muted">${notif.message.substring(0, 80)}${notif.message.length > 80 ? '...' : ''}</small>
-                                    </a>
-                                </li>
-                                <li><hr class="dropdown-divider">`;
-                        });
-                        html += `<li><a class="dropdown-item text-center" href="{{ route('notifications.index') }}">View All Notifications</a></li>`;
-                        dropdown.innerHTML = html;
-                    }
-                });
-        }
-
-        loadNotifications();
-        setInterval(loadNotifications, 30000);
-    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    @stack('scripts')
 </body>
 </html>

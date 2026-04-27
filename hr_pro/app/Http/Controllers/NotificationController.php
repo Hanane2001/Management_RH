@@ -42,9 +42,6 @@ class NotificationController extends Controller
             'total' => Notification::where('user_id', $user->id)->count(),
             'unread' => Notification::where('user_id', $user->id)->where('is_read', false)->count(),
             'read' => Notification::where('user_id', $user->id)->where('is_read', true)->count(),
-            'email_count' => Notification::where('user_id', $user->id)->where('type', 'email')->count(),
-            'sms_count' => Notification::where('user_id', $user->id)->where('type', 'sms')->count(),
-            'internal_count' => Notification::where('user_id', $user->id)->where('type', 'internal')->count(),
         ];
         
         return view('notifications.index', compact('notifications', 'stats', 'filter'));
@@ -88,10 +85,6 @@ class NotificationController extends Controller
         if ($request->type === 'email') {
             $this->sendEmailNotification($notification);
         }
-        if ($request->type === 'sms') {
-            // $this->sendSmsNotification($notification);
-        }
-        
         return redirect()->route('notifications.index')->with('success', 'Notification sent successfully');
     }
 
@@ -187,24 +180,6 @@ class NotificationController extends Controller
         return redirect()->route('notifications.index')->with('success', 'All notifications deleted');
     }
 
-    public function getUnreadCount()
-    {
-        $user = auth()->user();
-        $count = Notification::where('user_id', $user->id)->where('is_read', false)->count();
-        return response()->json(['count' => $count]);
-    }
-
-    public function getRecent()
-    {
-        $user = auth()->user();
-        $notifications = Notification::where('user_id', $user->id)->latest()->take(10)->get();
-        $unreadCount = Notification::where('user_id', $user->id)->where('is_read', false)->count();
-        return response()->json([
-            'notifications' => $notifications,
-            'unread_count' => $unreadCount
-        ]);
-    }
-
     public function sendBulk(Request $request)
     {
         if (!auth()->user()->isAdmin() && !auth()->user()->isManager()) {
@@ -259,7 +234,7 @@ class NotificationController extends Controller
             Notification::create([
                 'user_id' => $manager->id,
                 'title' => 'New Leave Request',
-                'message' => $leave->employee->first_name . ' ' . $leave->employee->last_name . 
+                'message' => $leave->employee->getFullName() . 
                             ' has requested ' . $leave->type . ' leave from ' . 
                             $leave->start_date->format('d/m/Y') . ' to ' . $leave->end_date->format('d/m/Y'),
                 'type' => 'internal',
@@ -275,30 +250,6 @@ class NotificationController extends Controller
             'title' => 'Leave Request ' . ucfirst($leave->status),
             'message' => 'Your leave request from ' . $leave->start_date->format('d/m/Y') . 
                         ' to ' . $leave->end_date->format('d/m/Y') . ' has been ' . $leave->status,
-            'type' => 'internal',
-            'sent_at' => Carbon::now()
-        ]);
-    }
-
-    public static function contractExpirationNotification($contract)
-    {
-        Notification::create([
-            'user_id' => $contract->employee_id,
-            'title' => 'Contract Expiration Alert',
-            'message' => 'Your contract will expire on ' . $contract->end_date->format('d/m/Y') . 
-                        '. Please contact HR for renewal.',
-            'type' => 'internal',
-            'sent_at' => Carbon::now()
-        ]);
-    }
-
-    public static function payrollGeneratedNotification($payroll)
-    {
-        Notification::create([
-            'user_id' => $payroll->employee_id,
-            'title' => 'Payroll Generated',
-            'message' => 'Your payroll for ' . $payroll->getMonthName() . ' ' . $payroll->year . 
-                        ' has been generated. Net amount: ' . number_format($payroll->net_pay, 2) . ' DH',
             'type' => 'internal',
             'sent_at' => Carbon::now()
         ]);

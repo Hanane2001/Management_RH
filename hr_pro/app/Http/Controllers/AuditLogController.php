@@ -116,60 +116,6 @@ class AuditLogController extends Controller
         return view('audit_logs.show', compact('auditLog'));
     }
 
-    public function export(Request $request)
-    {
-        if (!auth()->user()->isAdmin()) {
-            abort(403);
-        }
-        
-        $query = AuditLog::with('user');
-
-        if ($request->filled('user_id')) {
-            $query->where('user_id', $request->user_id);
-        }
-        if ($request->filled('action')) {
-            $query->where('action', $request->action);
-        }
-        if ($request->filled('entity_type')) {
-            $query->where('entity_type', $request->entity_type);
-        }
-        if ($request->filled('date_from')) {
-            $query->whereDate('created_at', '>=', $request->date_from);
-        }
-        if ($request->filled('date_to')) {
-            $query->whereDate('created_at', '<=', $request->date_to);
-        }
-        
-        $logs = $query->latest('created_at')->get();
-        
-        $filename = "audit_logs_" . Carbon::now()->format('Y-m-d_H-i-s') . ".csv";
-        $handle = fopen('php://temp', 'w');
-        
-        fputcsv($handle, ['ID', 'User', 'Email', 'Action', 'Entity Type', 'Entity ID', 'Changes', 'IP Address', 'Created At']);
-        
-        foreach ($logs as $log) {
-            fputcsv($handle, [
-                $log->id,
-                $log->user ? $log->user->first_name . ' ' . $log->user->last_name : 'System',
-                $log->user ? $log->user->email : 'system@hrpro.com',
-                $log->action,
-                $log->entity_type,
-                $log->entity_id,
-                $log->getChangesSummary(),
-                $log->ip_address ?? 'N/A',
-                $log->created_at->format('d/m/Y H:i:s')
-            ]);
-        }
-        
-        rewind($handle);
-        $csv = stream_get_contents($handle);
-        fclose($handle);
-        
-        return response($csv, 200)
-            ->header('Content-Type', 'text/csv')
-            ->header('Content-Disposition', "attachment; filename=\"$filename\"");
-    }
-
     public function clean(Request $request)
     {
         if (!auth()->user()->isAdmin()) {
@@ -183,8 +129,7 @@ class AuditLogController extends Controller
         $date = Carbon::now()->subDays($request->days);
         $deleted = AuditLog::where('created_at', '<', $date)->delete();
         
-        return redirect()->route('audit-logs.index')
-            ->with('success', "$deleted audit logs older than {$request->days} days have been deleted");
+        return redirect()->route('audit-logs.index')->with('success', "$deleted audit logs older than {$request->days} days have been deleted");
     }
 
     public function dashboard()

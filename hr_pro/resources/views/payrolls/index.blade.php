@@ -1,169 +1,161 @@
 @extends('layouts.app')
 
+@section('title', 'Payrolls')
+
 @section('content')
-<div class="container">
-    <h1 class="mb-4">Payroll Management</h1>
-    
-    <div class="mb-3">
-        @can('create', App\Models\Payroll::class)
-            <a href="{{ route('payrolls.create') }}" class="btn btn-primary">+ Create Payroll</a>
-        @endcan
-        <a href="{{ route('payrolls.export') }}" class="btn btn-success">Export CSV</a>
-        
-        @can('create', App\Models\Payroll::class)
-            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#generateModal">
-                Generate Payrolls
-            </button>
-        @endcan
-    </div>
-    
-    <div class="card mb-3">
-        <div class="card-body">
-            <form method="GET" action="{{ route('payrolls.index') }}" class="row">
-                <div class="col-md-4">
-                    <label>Month</label>
-                    <select name="month" class="form-control">
-                        @foreach($months as $key => $monthName)
-                            <option value="{{ $key }}" {{ $month == $key ? 'selected' : '' }}>
-                                {{ $monthName }}
-                            </option>
-                        @endforeach
-                    </select>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Payroll Management</h3>
+                    <div class="float-end">
+                        <form method="GET" action="{{ route('payrolls.index') }}" class="d-inline">
+                            <div class="input-group">
+                                <select name="month" class="form-control" style="width: auto;">
+                                    @foreach($months as $key => $monthName)
+                                    <option value="{{ $key }}" {{ $month == $key ? 'selected' : '' }}>
+                                        {{ $monthName }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                                <select name="year" class="form-control" style="width: auto;">
+                                    @foreach($years as $yearOption)
+                                    <option value="{{ $yearOption }}" {{ $year == $yearOption ? 'selected' : '' }}>
+                                        {{ $yearOption }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                                <button type="submit" class="btn btn-primary">Filter</button>
+                            </div>
+                        </form>
+                        @can('create', App\Models\Payroll::class)
+                        <a href="{{ route('payrolls.create') }}" class="btn btn-primary ms-2">
+                            <i class="fas fa-plus"></i> Add Payroll
+                        </a>
+                        <button type="button" class="btn btn-info ms-2" data-bs-toggle="modal" data-bs-target="#generateAllModal">
+                            <i class="fas fa-sync"></i> Generate All
+                        </button>
+                        @endcan
+                    </div>
                 </div>
-                <div class="col-md-4">
-                    <label>Year</label>
-                    <select name="year" class="form-control">
-                        @foreach($years as $yearValue)
-                            <option value="{{ $yearValue }}" {{ $year == $yearValue ? 'selected' : '' }}>
-                                {{ $yearValue }}
-                            </option>
-                        @endforeach
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label>&nbsp;</label>
-                    <button type="submit" class="btn btn-primary form-control">Filter</button>
-                </div>
-            </form>
-        </div>
-    </div>
-    
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Employee</th>
-                            <th>Department</th>
-                            <th>Base Salary</th>
-                            <th>Overtime</th>
-                            <th>Bonuses</th>
-                            <th>Allowances</th>
-                            <th>Deductions</th>
-                            <th>Net Pay</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($payrolls as $payroll)
-                        <tr>
-                            <td>{{ $payroll->employee->first_name }} {{ $payroll->employee->last_name }}</td>
-                            <td>{{ $payroll->employee->department->name ?? 'N/A' }}</td>
-                            <td>{{ number_format($payroll->base_salary, 2) }} DH</td>
-                            <td>{{ $payroll->overtime_hours }}h</td>
-                            <td>{{ number_format($payroll->bonuses, 2) }} DH</td>
-                            <td>{{ number_format($payroll->allowances, 2) }} DH</td>
-                            <td>{{ number_format($payroll->deductions, 2) }} DH</td>
-                            <td class="fw-bold">{{ number_format($payroll->net_pay, 2) }} DH</td>
-                            <td>{!! $payroll->getStatusBadge() !!}</td>
-                            <td>
-                                <div class="btn-group" role="group">
-                                    <a href="{{ route('payrolls.show', $payroll) }}" class="btn btn-sm btn-info">View</a>
-                                    @can('update', $payroll)
-                                        <a href="{{ route('payrolls.edit', $payroll) }}" class="btn btn-sm btn-warning">Edit</a>
-                                    @endcan
-                                    <a href="{{ route('payrolls.pdf', $payroll) }}" class="btn btn-sm btn-secondary">PDF</a>
-                                    @if($payroll->canBeApproved())
-                                        <form action="{{ route('payrolls.approve', $payroll) }}" method="POST" style="display:inline">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Employee</th>
+                                    <th>Department</th>
+                                    <th>Base Salary</th>
+                                    <th>Bonuses</th>
+                                    <th>Deductions</th>
+                                    <th>Net Pay</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($payrolls as $payroll)
+                                <tr>
+                                    <td>{{ $payroll->id }}</a></td>
+                                    <td>
+                                        <a href="{{ route('employees.show', $payroll->employee_id) }}">
+                                            {{ $payroll->employee->getFullName() }}
+                                        </a>
+                                    </a></td>
+                                    <td>{{ $payroll->employee->department->name ?? 'N/A' }}</a></td>
+                                    <td>{{ number_format($payroll->base_salary, 2) }} DH</a></td>
+                                    <td>{{ number_format($payroll->bonuses, 2) }} DH</a></td>
+                                    <td>{{ number_format($payroll->deductions, 2) }} DH</a></td>
+                                    <td><strong>{{ number_format($payroll->net_pay, 2) }} DH</strong></a></td>
+                                    <td>
+                                        @if($payroll->status == 'draft')
+                                            <span class="badge bg-secondary">Draft</span>
+                                        @elseif($payroll->status == 'generated')
+                                            <span class="badge bg-info">Generated</span>
+                                        @elseif($payroll->status == 'approved')
+                                            <span class="badge bg-success">Approved</span>
+                                        @else
+                                            <span class="badge bg-primary">Paid</span>
+                                        @endif
+                                    </a>
+                                    <td>
+                                        <a href="{{ route('payrolls.show', $payroll) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        @can('update', $payroll)
+                                        <a href="{{ route('payrolls.edit', $payroll) }}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        @endcan
+                                        @if($payroll->status == 'generated' && (auth()->user()->isAdmin() || auth()->user()->isManager()))
+                                        <form method="POST" action="{{ route('payrolls.approve', $payroll) }}" class="d-inline">
                                             @csrf
                                             <button type="submit" class="btn btn-sm btn-success">Approve</button>
                                         </form>
-                                    @endif
-                                    @if($payroll->canBePaid())
-                                        <form action="{{ route('payrolls.mark-paid', $payroll) }}" method="POST" style="display:inline">
+                                        @endif
+                                        @if($payroll->status == 'approved' && auth()->user()->isAdmin())
+                                        <form method="POST" action="{{ route('payrolls.mark-paid', $payroll) }}" class="d-inline">
                                             @csrf
                                             <button type="submit" class="btn btn-sm btn-primary">Mark Paid</button>
                                         </form>
-                                    @endif
-                                    @can('delete', $payroll)
-                                        <form action="{{ route('payrolls.destroy', $payroll) }}" method="POST" style="display:inline">
-                                            @csrf
-                                            @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this payroll?')">Delete</button>
-                                        </form>
-                                    @endcan
-                                </div>
-                              </td>
-                        </tr>
-                        @empty
-                            <tr>
-                                <td colspan="10" class="text-center">No payroll records found</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+                                        @endif
+                                    </a>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                    {{ $payrolls->links() }}
+                </div>
             </div>
-            
-            {{ $payrolls->links() }}
         </div>
     </div>
 </div>
 
-<!-- Generate Modal -->
-@can('create', App\Models\Payroll::class)
-<div class="modal fade" id="generateModal" tabindex="-1">
+<!-- Generate All Modal -->
+<div class="modal fade" id="generateAllModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Generate Payroll for All Employees</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
             <form method="POST" action="{{ route('payrolls.generate-all') }}">
                 @csrf
-                <div class="modal-header">
-                    <h5 class="modal-title">Generate Payrolls</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label>Month</label>
+                        <label for="month" class="form-label">Month</label>
                         <select name="month" class="form-control" required>
                             @foreach($months as $key => $monthName)
-                                <option value="{{ $key }}" {{ $month == $key ? 'selected' : '' }}>
-                                    {{ $monthName }}
-                                </option>
+                            <option value="{{ $key }}" {{ $key == $month ? 'selected' : '' }}>
+                                {{ $monthName }}
+                            </option>
                             @endforeach
                         </select>
                     </div>
                     <div class="mb-3">
-                        <label>Year</label>
+                        <label for="year" class="form-label">Year</label>
                         <select name="year" class="form-control" required>
-                            @foreach($years as $yearValue)
-                                <option value="{{ $yearValue }}" {{ $year == $yearValue ? 'selected' : '' }}>
-                                    {{ $yearValue }}
-                                </option>
+                            @foreach($years as $yearOption)
+                            <option value="{{ $yearOption }}" {{ $yearOption == $year ? 'selected' : '' }}>
+                                {{ $yearOption }}
+                            </option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="alert alert-info">
-                        This will generate payrolls for all employees with active contracts.
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        This will generate payroll for all employees with active contracts. Existing payroll records will be skipped.
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Generate</button>
+                    <button type="submit" class="btn btn-primary">Generate All</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-@endcan
 @endsection

@@ -23,6 +23,7 @@ class User extends Authenticatable
     const ROLE_ADMIN = 1;
     const ROLE_MANAGER = 2;
     const ROLE_EMPLOYEE = 3;
+    const ROLE_USER = 4;
 
     protected $fillable = [
         'first_name',
@@ -109,15 +110,20 @@ class User extends Authenticatable
     }
 
     public function isAdmin(): bool{
-        return $this->role_id === 1 || ($this->role && $this->role->name === 'admin');
+        return $this->role_id === self::ROLE_ADMIN;
     }
 
     public function isManager(): bool{
-        return $this->role_id === 2 || ($this->role && $this->role->name === 'manager');
+        return $this->role_id === self::ROLE_MANAGER;
     }
 
     public function isEmployee(): bool{
-        return $this->role_id === 3 || ($this->role && $this->role->name === 'employ');
+        return $this->role_id === self::ROLE_EMPLOYEE;
+    }
+
+    public function isUser(): bool
+    {
+        return $this->role_id === self::ROLE_USER;
     }
 
     public function getCurrentLeaveBalance(){

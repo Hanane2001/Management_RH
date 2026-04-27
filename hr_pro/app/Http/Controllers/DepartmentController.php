@@ -28,7 +28,7 @@ class DepartmentController extends Controller
         if (Gate::denies('create', Department::class)) {
             abort(403);
         }
-        $managers = User::whereHas('role', fn($q) => $q->where('name', 'manager'))->get();
+        $managers = User::where('role_id', User::ROLE_MANAGER)->get();
         return view('department.create', compact('managers'));
     }
 
@@ -65,7 +65,7 @@ class DepartmentController extends Controller
             abort(403);
         }
         $department = Department::findOrFail($id);
-        $managers = User::whereHas('role', fn($q) => $q->where('name', 'manager'))->get();
+        $managers = User::where('role_id', User::ROLE_MANAGER)->get();
         return view('department.edit', compact('department', 'managers'));
     }
 

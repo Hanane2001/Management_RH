@@ -1,68 +1,81 @@
 @extends('layouts.app')
 
+@section('title', 'Contracts')
+
 @section('content')
-<div class="container">
-    <h1 class="mb-4">Contracts Management</h1>
-    
-    @can('create', App\Models\Contract::class)
-    <div class="mb-3">
-        <a href="{{ route('contracts.create') }}" class="btn btn-primary">+ New Contract</a>
-    </div>
-    @endcan
-    
-    <div class="card">
-        <div class="card-body">
-            <div class="table-responsive">
-                <table class="table table-bordered">
-                    <thead>
-                        <tr>
-                            <th>Employee</th>
-                            <th>Type</th>
-                            <th>Position</th>
-                            <th>Salary</th>
-                            <th>Start Date</th>
-                            <th>End Date</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($contracts as $contract)
-                        <tr>
-                            <td>{{ $contract->employee->first_name }} {{ $contract->employee->last_name }}</td>
-                            <td>{{ ucfirst($contract->type) }}</td>
-                            <td>{{ $contract->position }}</td>
-                            <td>{{ number_format($contract->base_salary, 2) }} DH</td>
-                            <td>{{ $contract->start_date->format('d/m/Y') }}</td>
-                            <td>{{ $contract->end_date ? $contract->end_date->format('d/m/Y') : 'Permanent' }}</td>
-                            <td>
-                                @if($contract->isActive())
-                                    <span class="badge bg-success">Active</span>
-                                @else
-                                    <span class="badge bg-danger">Expired</span>
-                                @endif
-                             </td>
-                            <td>
-                                <a href="{{ route('contracts.show', $contract->id) }}" class="btn btn-sm btn-info">View</a>
-                                @can('update', $contract)
-                                    <a href="{{ route('contracts.edit', $contract->id) }}" class="btn btn-sm btn-warning">Edit</a>
-                                @endcan
-                                @can('delete', $contract)
-                                    <form action="{{ route('contracts.destroy', $contract->id) }}" method="POST" style="display:inline">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this contract?')">Delete</button>
-                                    </form>
-                                @endcan
-                             </td>
-                        </tr>
-                        @empty
-                            <tr>
-                                <td colspan="8" class="text-center">No contracts found</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Contracts Management</h3>
+                    @can('create', App\Models\Contract::class)
+                    <a href="{{ route('contracts.create') }}" class="btn btn-primary float-end">
+                        <i class="fas fa-plus"></i> Add Contract
+                    </a>
+                    @endcan
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Employee</th>
+                                    <th>Position</th>
+                                    <th>Type</th>
+                                    <th>Base Salary</th>
+                                    <th>Start Date</th>
+                                    <th>End Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach($contracts as $contract)
+                                <tr>
+                                    <td>{{ $contract->id }}</a></td>
+                                    <td><a href="{{ route('employees.show', $contract->employee_id) }}">
+                                        {{ $contract->employee->getFullName() }}
+                                    </a></td>
+                                    <td>{{ $contract->position }}</a></td>
+                                    <td>{{ ucfirst($contract->type) }}</a></td>
+                                    <td>{{ number_format($contract->base_salary, 2) }} DH</a></td>
+                                    <td>{{ $contract->start_date->format('d/m/Y') }}</a></td>
+                                    <td>{{ $contract->end_date ? $contract->end_date->format('d/m/Y') : 'Current' }}</a></td>
+                                    <td>
+                                        @if($contract->isActive())
+                                            <span class="badge bg-success">Active</span>
+                                        @else
+                                            <span class="badge bg-danger">Expired</span>
+                                        @endif
+                                    </a>
+                                    <td>
+                                        <a href="{{ route('contracts.show', $contract) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        @can('update', $contract)
+                                        <a href="{{ route('contracts.edit', $contract) }}" class="btn btn-sm btn-warning">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        @endcan
+                                        @can('delete', $contract)
+                                        <form method="POST" action="{{ route('contracts.destroy', $contract) }}" class="d-inline" 
+                                              onsubmit="return confirm('Are you sure?')">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-danger">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                        @endcan
+                                    </a>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         </div>
     </div>

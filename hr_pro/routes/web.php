@@ -14,163 +14,226 @@ use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\PayrollController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\AuditLogController;
-use Illuminate\Support\Facades\Gate;
+use App\Http\Controllers\ProfileController;
 
 Route::get('/', function () {
     return view('welcome');
+})->name('home');
+
+Route::middleware('guest')->group(function () {
+    // Login
+    Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
+    Route::post('/login', [AuthController::class, 'login']);
+    
+    // Register
+    Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
+    Route::post('/register', [AuthController::class, 'register']);
+    
+    // OTP Verification
+    Route::get('/otp', [AuthController::class, 'showOtp'])->name('otp');
+    Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('verify-otp');
+    
+    // Password Reset
+    Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('forgot-password');
+    Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('reset-password');
+    Route::get('/reset-otp', [AuthController::class, 'showResetOtp'])->name('reset-otp');
+    Route::post('/verify-reset-otp', [AuthController::class, 'verifyResetOtp'])->name('verify-reset-otp');
+    Route::get('/change-password', [AuthController::class, 'showChangePassword'])->name('change-password');
+    Route::post('/change-password', [AuthController::class, 'changePassword']);
 });
 
-// Auth 
-Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
-Route::post('/login', [AuthController::class, 'login']);
-Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
-Route::post('/register', [AuthController::class, 'register']);
-Route::get('/otp', [AuthController::class, 'showOtp'])->name('otp');
-Route::post('/verify-otp', [AuthController::class, 'verifyOtp'])->name('verify-otp');
-Route::get('/forgot-password', [AuthController::class, 'showForgotPassword'])->name('forgot-password');
-Route::post('/reset-password', [AuthController::class, 'resetPassword'])->name('reset-password');
-Route::get('/reset-otp', [AuthController::class, 'showResetOtp'])->name('reset-otp');
-Route::post('/verify-reset-otp', [AuthController::class, 'verifyResetOtp'])->name('verify-reset-otp');
-Route::get('/change-password', [AuthController::class, 'showChangePassword'])->name('change-password');
-Route::post('/change-password', [AuthController::class, 'changePassword']);
-
+// Auth
 Route::middleware(['auth'])->group(function () {
-    // Dashboard
-    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Logout
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
     
+    // Dashboard
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+    
+    // Profile
+    Route::prefix('profile')->name('profile.')->group(function () {
+        Route::get('/', [ProfileController::class, 'show'])->name('show');
+        Route::get('/edit', [ProfileController::class, 'edit'])->name('edit');
+        Route::put('/', [ProfileController::class, 'update'])->name('update');
+        Route::get('/change-password', [ProfileController::class, 'showChangePassword'])->name('change-password');
+        Route::put('/password', [ProfileController::class, 'changePassword'])->name('update-password');
+    });
+    
     // Departments
-    Route::get('/departments', [DepartmentController::class, 'index'])->name('departments.index');
-    Route::get('/departments/{id}', [DepartmentController::class, 'show'])->name('departments.show');
-
+    Route::prefix('departments')->name('departments.')->group(function () {
+        Route::get('/', [DepartmentController::class, 'index'])->name('index');
+        Route::get('/create', [DepartmentController::class, 'create'])->name('create');
+        Route::get('/{id}', [DepartmentController::class, 'show'])->name('show');
+    });
+    
     // Contracts
-    Route::get('/contracts', [ContractController::class, 'index'])->name('contracts.index');
-    Route::get('/contracts/{contract}', [ContractController::class, 'show'])->name('contracts.show');
-
+    Route::resource('contracts', ContractController::class);
+    
     // Leaves
-    Route::get('/leaves', [LeaveController::class, 'index'])->name('leaves.index');
-    Route::get('/leaves/create', [LeaveController::class, 'create'])->name('leaves.create');
-    Route::post('/leaves', [LeaveController::class, 'store'])->name('leaves.store');
-    Route::get('/leaves/{leave}', [LeaveController::class, 'show'])->name('leaves.show');
-    Route::get('/leaves/balance/my', [LeaveController::class, 'balance'])->name('leaves.balance');
-
+    Route::prefix('leaves')->name('leaves.')->group(function () {
+        Route::get('/', [LeaveController::class, 'index'])->name('index');
+        Route::get('/create', [LeaveController::class, 'create'])->name('create');
+        Route::post('/', [LeaveController::class, 'store'])->name('store');
+        Route::get('/{leave}', [LeaveController::class, 'show'])->name('show');
+        Route::get('/balance/my', [LeaveController::class, 'balance'])->name('balance');
+    });
+    
     // Leave Balances
     Route::get('/my-balance', [LeaveBalanceController::class, 'myBalance'])->name('leave-balances.my');
-
+    
     // Evaluations
-    Route::get('/evaluations', [EvaluationController::class, 'index'])->name('evaluations.index');
-    Route::get('/evaluations/statistics', [EvaluationController::class, 'statistics'])->name('evaluations.statistics');
-    Route::get('/evaluations/export', [EvaluationController::class, 'export'])->name('evaluations.export');
-    Route::get('/evaluations/create', [EvaluationController::class, 'create'])->name('evaluations.create');
-    Route::get('/evaluations/{evaluation}', [EvaluationController::class, 'show'])->name('evaluations.show');
-
+    Route::prefix('evaluations')->name('evaluations.')->group(function () {
+        Route::get('/', [EvaluationController::class, 'index'])->name('index');
+        Route::get('/statistics', [EvaluationController::class, 'statistics'])->name('statistics');
+        Route::get('/{evaluation}', [EvaluationController::class, 'show'])->name('show');
+    });
+    
     // Documents
-    Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
-    Route::get('/documents/create', [DocumentController::class, 'create'])->name('documents.create');
-    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
-    Route::get('/documents/{document}', [DocumentController::class, 'show'])->name('documents.show');
-    Route::get('/documents/{document}/download', [DocumentController::class, 'download'])->name('documents.download');
-    Route::get('/documents/{document}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
-    Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
-    Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
-    Route::get('/employees/{employeeId}/documents', [DocumentController::class, 'employeeDocuments'])->name('documents.employee');
-
-    // Attendance
-    Route::get('/attendances', [AttendanceController::class, 'index'])->name('attendances.index');
-    Route::get('/attendances/report', [AttendanceController::class, 'report'])->name('attendances.report');
-    Route::get('/attendances/export', [AttendanceController::class, 'export'])->name('attendances.export');
-    Route::get('/attendances/create', [AttendanceController::class, 'create'])->name('attendances.create');
-    Route::post('/attendances', [AttendanceController::class, 'store'])->name('attendances.store');
-    Route::get('/attendances/{attendance}', [AttendanceController::class, 'show'])->name('attendances.show');
-    Route::get('/attendances/{attendance}/edit', [AttendanceController::class, 'edit'])->name('attendances.edit');
-    Route::put('/attendances/{attendance}', [AttendanceController::class, 'update'])->name('attendances.update');
-    Route::delete('/attendances/{attendance}', [AttendanceController::class, 'destroy'])->name('attendances.destroy');
-    Route::post('/attendances/check-in', [AttendanceController::class, 'checkIn'])->name('attendances.check-in');
-    Route::post('/attendances/check-out', [AttendanceController::class, 'checkOut'])->name('attendances.check-out');
-
+    Route::prefix('documents')->name('documents.')->group(function () {
+        Route::get('/', [DocumentController::class, 'index'])->name('index');
+        Route::get('/create', [DocumentController::class, 'create'])->name('create');
+        Route::post('/', [DocumentController::class, 'store'])->name('store');
+        Route::get('/{document}', [DocumentController::class, 'show'])->name('show');
+        Route::get('/{document}/download', [DocumentController::class, 'download'])->name('download');
+        Route::get('/{document}/edit', [DocumentController::class, 'edit'])->name('edit');
+        Route::put('/{document}', [DocumentController::class, 'update'])->name('update');
+        Route::delete('/{document}', [DocumentController::class, 'destroy'])->name('destroy');
+        Route::get('/employee/{employeeId}', [DocumentController::class, 'employeeDocuments'])->name('employee');
+    });
+    
+    // Attendances
+    Route::prefix('attendances')->name('attendances.')->group(function () {
+        Route::get('/', [AttendanceController::class, 'index'])->name('index');
+        Route::get('/create', [AttendanceController::class, 'create'])->name('create');
+        Route::post('/', [AttendanceController::class, 'store'])->name('store');
+        Route::get('/report', [AttendanceController::class, 'report'])->name('report');
+        Route::get('/{attendance}', [AttendanceController::class, 'show'])->name('show');
+        Route::post('/check-in', [AttendanceController::class, 'checkIn'])->name('check-in');
+        Route::post('/check-out', [AttendanceController::class, 'checkOut'])->name('check-out');
+        Route::get('/{attendance}/edit', [AttendanceController::class, 'edit'])->name('edit');
+        Route::put('/{attendance}', [AttendanceController::class, 'update'])->name('update');
+        Route::delete('/{attendance}', [AttendanceController::class, 'destroy'])->name('destroy');
+    });
+    
     // Payrolls
-    Route::get('/payrolls', [PayrollController::class, 'index'])->name('payrolls.index');
-    Route::get('/payrolls/create', [PayrollController::class, 'create'])->name('payrolls.create');
-    Route::post('/payrolls', [PayrollController::class, 'store'])->name('payrolls.store');
-    Route::get('/payrolls/{payroll}', [PayrollController::class, 'show'])->name('payrolls.show');
-    Route::get('/payrolls/{payroll}/edit', [PayrollController::class, 'edit'])->name('payrolls.edit');
-    Route::put('/payrolls/{payroll}', [PayrollController::class, 'update'])->name('payrolls.update');
-    Route::delete('/payrolls/{payroll}', [PayrollController::class, 'destroy'])->name('payrolls.destroy');
-    Route::get('/payrolls/export/csv', [PayrollController::class, 'export'])->name('payrolls.export');
-    Route::post('/payrolls/generate-from-contract', [PayrollController::class, 'generateFromContract'])->name('payrolls.generate-from-contract');
-    Route::post('/payrolls/generate-all', [PayrollController::class, 'generateAll'])->name('payrolls.generate-all');
-    Route::post('/payrolls/{payroll}/approve', [PayrollController::class, 'approve'])->name('payrolls.approve');
-    Route::post('/payrolls/{payroll}/mark-paid', [PayrollController::class, 'markAsPaid'])->name('payrolls.mark-paid');
-    Route::get('/payrolls/{payroll}/pdf', [PayrollController::class, 'generatePdf'])->name('payrolls.pdf');
-
+    Route::prefix('payrolls')->name('payrolls.')->group(function () {
+        Route::get('/', [PayrollController::class, 'index'])->name('index');
+        Route::get('/create', [PayrollController::class, 'create'])->name('create');
+        Route::post('/', [PayrollController::class, 'store'])->name('store');
+        Route::get('/{payroll}', [PayrollController::class, 'show'])->name('show');
+        Route::get('/{payroll}/edit', [PayrollController::class, 'edit'])->name('edit');
+        Route::put('/{payroll}', [PayrollController::class, 'update'])->name('update');
+        Route::delete('/{payroll}', [PayrollController::class, 'destroy'])->name('destroy');
+        Route::post('/generate-from-contract', [PayrollController::class, 'generateFromContract'])->name('generate-from-contract');
+        Route::post('/generate-all', [PayrollController::class, 'generateAll'])->name('generate-all');
+        Route::post('/{payroll}/approve', [PayrollController::class, 'approve'])->name('approve');
+        Route::post('/{payroll}/mark-paid', [PayrollController::class, 'markAsPaid'])->name('mark-paid');
+    });
+    
     // Notifications
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::get('/notifications/create', [NotificationController::class, 'create'])->name('notifications.create');
-    Route::post('/notifications', [NotificationController::class, 'store'])->name('notifications.store');
-    Route::get('/notifications/{notification}', [NotificationController::class, 'show'])->name('notifications.show');
-    Route::get('/notifications/{notification}/edit', [NotificationController::class, 'edit'])->name('notifications.edit');
-    Route::put('/notifications/{notification}', [NotificationController::class, 'update'])->name('notifications.update');
-    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
-    Route::post('/notifications/{notification}/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.mark-read');
-    Route::post('/notifications/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
-    Route::delete('/notifications/delete-all', [NotificationController::class, 'deleteAll'])->name('notifications.delete-all');
-    Route::post('/notifications/send-bulk', [NotificationController::class, 'sendBulk'])->name('notifications.send-bulk');
-    Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
-    Route::get('/notifications/recent', [NotificationController::class, 'getRecent'])->name('notifications.recent');
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [NotificationController::class, 'index'])->name('index');
+        Route::get('/create', [NotificationController::class, 'create'])->name('create');
+        Route::post('/', [NotificationController::class, 'store'])->name('store');
+        Route::get('/{notification}', [NotificationController::class, 'show'])->name('show');
+        Route::get('/{notification}/edit', [NotificationController::class, 'edit'])->name('edit');
+        Route::put('/{notification}', [NotificationController::class, 'update'])->name('update');
+        Route::delete('/{notification}', [NotificationController::class, 'destroy'])->name('destroy');
+        Route::post('/{notification}/mark-read', [NotificationController::class, 'markAsRead'])->name('mark-read');
+        Route::post('/mark-all-read', [NotificationController::class, 'markAllAsRead'])->name('mark-all-read');
+        Route::delete('/delete-all', [NotificationController::class, 'deleteAll'])->name('delete-all');
+        Route::post('/send-bulk', [NotificationController::class, 'sendBulk'])->name('send-bulk');
+    });
 });
 
 Route::middleware(['auth', 'admin'])->group(function () {
     // Employees
     Route::resource('employees', EmployeeController::class);
+    Route::post('/employees/{employee}/approve', [EmployeeController::class, 'approve'])->name('employees.approve');
     
     // Departments
-    Route::resource('departments', DepartmentController::class)->except(['index', 'show']);
+    Route::prefix('departments')->name('departments.')->group(function () {
+        Route::post('/', [DepartmentController::class, 'store'])->name('store');
+        Route::get('/{id}/edit', [DepartmentController::class, 'edit'])->name('edit');
+        Route::put('/{id}', [DepartmentController::class, 'update'])->name('update');
+        Route::delete('/{id}', [DepartmentController::class, 'destroy'])->name('destroy');
+    });
     
     // Leave Balances
-    Route::get('/leave-balances', [LeaveBalanceController::class, 'index'])->name('leave-balances.index');
-    Route::get('/leave-balances/create', [LeaveBalanceController::class, 'create'])->name('leave-balances.create');
-    Route::post('/leave-balances', [LeaveBalanceController::class, 'store'])->name('leave-balances.store');
-    Route::get('/leave-balances/{leaveBalance}', [LeaveBalanceController::class, 'show'])->name('leave-balances.show');
-    Route::get('/leave-balances/{leaveBalance}/edit', [LeaveBalanceController::class, 'edit'])->name('leave-balances.edit');
-    Route::put('/leave-balances/{leaveBalance}', [LeaveBalanceController::class, 'update'])->name('leave-balances.update');
-    Route::delete('/leave-balances/{leaveBalance}', [LeaveBalanceController::class, 'destroy'])->name('leave-balances.destroy');
-    Route::post('/leave-balances/initialize', [LeaveBalanceController::class, 'initializeYear'])->name('leave-balances.initialize');
-    Route::post('/leave-balances/{leaveBalance}/add-days', [LeaveBalanceController::class, 'addDays'])->name('leave-balances.add-days');
-    Route::get('/leave-balances/export/csv', [LeaveBalanceController::class, 'export'])->name('leave-balances.export');
-    Route::get('/leave-balances/statistics', [LeaveBalanceController::class, 'statistics'])->name('leave-balances.statistics');
-
-    // AuditLog
-    Route::get('/audit-logs', [AuditLogController::class, 'index'])->name('audit-logs.index');
-    Route::get('/audit-logs/dashboard', [AuditLogController::class, 'dashboard'])->name('audit-logs.dashboard');
-    Route::get('/audit-logs/{auditLog}', [AuditLogController::class, 'show'])->name('audit-logs.show');
-    Route::get('/audit-logs/export/csv', [AuditLogController::class, 'export'])->name('audit-logs.export');
-    Route::delete('/audit-logs/clean', [AuditLogController::class, 'clean'])->name('audit-logs.clean');
-    Route::get('/audit-logs/entity/{entityType}/{entityId}', [AuditLogController::class, 'forEntity'])->name('audit-logs.entity');
-    Route::get('/audit-logs/user/{userId}', [AuditLogController::class, 'forUser'])->name('audit-logs.user');
+    Route::prefix('leave-balances')->name('leave-balances.')->group(function () {
+        Route::get('/', [LeaveBalanceController::class, 'index'])->name('index');
+        Route::get('/create', [LeaveBalanceController::class, 'create'])->name('create');
+        Route::post('/', [LeaveBalanceController::class, 'store'])->name('store');
+        Route::get('/{leaveBalance}', [LeaveBalanceController::class, 'show'])->name('show');
+        Route::get('/{leaveBalance}/edit', [LeaveBalanceController::class, 'edit'])->name('edit');
+        Route::put('/{leaveBalance}', [LeaveBalanceController::class, 'update'])->name('update');
+        Route::delete('/{leaveBalance}', [LeaveBalanceController::class, 'destroy'])->name('destroy');
+        Route::post('/initialize', [LeaveBalanceController::class, 'initializeYear'])->name('initialize');
+        Route::post('/{leaveBalance}/add-days', [LeaveBalanceController::class, 'addDays'])->name('add-days');
+        Route::get('/statistics', [LeaveBalanceController::class, 'statistics'])->name('statistics');
+    });
+    
+    // Evaluations
+    Route::prefix('evaluations')->name('evaluations.')->group(function () {
+        Route::get('/create', [EvaluationController::class, 'create'])->name('create');
+        Route::post('/', [EvaluationController::class, 'store'])->name('store');
+        Route::get('/{evaluation}/edit', [EvaluationController::class, 'edit'])->name('edit');
+        Route::put('/{evaluation}', [EvaluationController::class, 'update'])->name('update');
+        Route::delete('/{evaluation}', [EvaluationController::class, 'destroy'])->name('destroy');
+    });
+    
+    // Audit Logs
+    Route::prefix('audit-logs')->name('audit-logs.')->group(function () {
+        Route::get('/', [AuditLogController::class, 'index'])->name('index');
+        Route::get('/dashboard', [AuditLogController::class, 'dashboard'])->name('dashboard');
+        Route::get('/{auditLog}', [AuditLogController::class, 'show'])->name('show');
+        Route::delete('/clean', [AuditLogController::class, 'clean'])->name('clean');
+        Route::get('/entity/{entityType}/{entityId}', [AuditLogController::class, 'forEntity'])->name('entity');
+        Route::get('/user/{userId}', [AuditLogController::class, 'forUser'])->name('user');
+    });
 });
 
 Route::middleware(['auth', 'manager'])->group(function () {
-    // Contracts
-    Route::get('/contracts/create', [ContractController::class, 'create'])->name('contracts.create');
-    Route::post('/contracts', [ContractController::class, 'store'])->name('contracts.store');
-    Route::get('/contracts/{contract}/edit', [ContractController::class, 'edit'])->name('contracts.edit');
-    Route::put('/contracts/{contract}', [ContractController::class, 'update'])->name('contracts.update');
-    Route::delete('/contracts/{contract}', [ContractController::class, 'destroy'])->name('contracts.destroy');
-
     // Leaves
-    Route::post('/leaves/{leave}/approve', [LeaveController::class, 'approve'])->name('leaves.approve');
-    Route::post('/leaves/{leave}/reject', [LeaveController::class, 'reject'])->name('leaves.reject');
-    Route::get('/leaves/balances/all', [LeaveController::class, 'allBalances'])->name('leaves.all-balances');
-
+    Route::prefix('leaves')->name('leaves.')->group(function () {
+        Route::post('/{leave}/approve', [LeaveController::class, 'approve'])->name('approve');
+        Route::post('/{leave}/reject', [LeaveController::class, 'reject'])->name('reject');
+        Route::get('/balances/all', [LeaveController::class, 'allBalances'])->name('all-balances');
+    });
+    
     // Leave Balances
-    Route::get('/leave-balances', [LeaveBalanceController::class, 'index'])->name('leave-balances.index');
-    Route::get('/leave-balances/{leaveBalance}', [LeaveBalanceController::class, 'show'])->name('leave-balances.show');
-    Route::get('/leave-balances/statistics', [LeaveBalanceController::class, 'statistics'])->name('leave-balances.statistics');
-    Route::get('/leave-balances/export/csv', [LeaveBalanceController::class, 'export'])->name('leave-balances.export');
-
+    Route::prefix('leave-balances')->name('leave-balances.')->group(function () {
+        Route::get('/', [LeaveBalanceController::class, 'index'])->name('index');
+        Route::get('/{leaveBalance}', [LeaveBalanceController::class, 'show'])->name('show');
+        Route::get('/statistics', [LeaveBalanceController::class, 'statistics'])->name('statistics');
+    });
+    
     // Evaluations
-    Route::post('/evaluations', [EvaluationController::class, 'store'])->name('evaluations.store');
-    Route::get('/evaluations/{evaluation}/edit', [EvaluationController::class, 'edit'])->name('evaluations.edit');
-    Route::put('/evaluations/{evaluation}', [EvaluationController::class, 'update'])->name('evaluations.update');
-    Route::delete('/evaluations/{evaluation}', [EvaluationController::class, 'destroy'])->name('evaluations.destroy');
+    Route::prefix('evaluations')->name('evaluations.')->group(function () {
+        Route::get('/create', [EvaluationController::class, 'create'])->name('create');
+        Route::post('/', [EvaluationController::class, 'store'])->name('store');
+        Route::get('/{evaluation}/edit', [EvaluationController::class, 'edit'])->name('edit');
+        Route::put('/{evaluation}', [EvaluationController::class, 'update'])->name('update');
+        Route::delete('/{evaluation}', [EvaluationController::class, 'destroy'])->name('destroy');
+    });
+});
+
+Route::middleware(['auth'])->prefix('api')->name('api.')->group(function () {
+    // Notifications
+    Route::get('/notifications/unread-count', [NotificationController::class, 'getUnreadCount'])->name('notifications.unread-count');
+    Route::get('/notifications/recent', [NotificationController::class, 'getRecent'])->name('notifications.recent');
+    
+    // Dashboard statistics
+    Route::get('/dashboard/stats', function () {
+        return response()->json([
+            'user' => auth()->user()->getFullName(),
+            'role' => auth()->user()->role->name ?? 'N/A'
+        ]);
+    })->name('dashboard.stats');
+});
+
+// Fallback Route (404)
+Route::fallback(function () {
+    return redirect('/dashboard')->with('error', 'Page not found');
 });

@@ -1,100 +1,131 @@
 @extends('layouts.app')
 
+@section('title', 'Employee Details')
+
 @section('content')
-<div class="container">
-    <h1 class="mb-4">Employee Details</h1>
-    
+<div class="container-fluid">
     <div class="row">
-        <div class="col-md-8">
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h4>Personal Information</h4>
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Employee Details: {{ $employee->getFullName() }}</h3>
+                    <a href="{{ route('employees.index') }}" class="btn btn-secondary float-end">Back</a>
                 </div>
                 <div class="card-body">
                     <div class="row">
                         <div class="col-md-6">
-                            <p><strong>Full Name:</strong> {{ $employee->first_name }} {{ $employee->last_name }}</p>
-                            <p><strong>Email:</strong> {{ $employee->email }}</p>
-                            <p><strong>Phone:</strong> {{ $employee->phone ?? 'N/A' }}</p>
-                            <p><strong>Birth Date:</strong> {{ $employee->birth_date ? $employee->birth_date->format('d/m/Y') : 'N/A' }}</p>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th width="30%">First Name</th>
+                                    <td>{{ $employee->first_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Last Name</th>
+                                    <td>{{ $employee->last_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email</th>
+                                    <td>{{ $employee->email }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Phone</th>
+                                    <td>{{ $employee->phone ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Department</th>
+                                    <td>{{ $employee->department->name ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Role</th>
+                                    <td>{{ ucfirst($employee->role->name ?? 'N/A') }}</td>
+                                </tr>
+                            </table>
                         </div>
                         <div class="col-md-6">
-                            <p><strong>Department:</strong> {{ $employee->department->name ?? 'N/A' }}</p>
-                            <p><strong>Role:</strong> {{ $employee->role->name ?? 'N/A' }}</p>
-                            <p><strong>ID Number:</strong> {{ $employee->id_number ?? 'N/A' }}</p>
-                            <p><strong>Social Security:</strong> {{ $employee->social_security_number ?? 'N/A' }}</p>
+                            <table class="table table-bordered">
+                                <tr>
+                                    <th width="30%">Birth Date</th>
+                                    <td>{{ $employee->birth_date ? $employee->birth_date->format('d/m/Y') : 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Address</th>
+                                    <td>{{ $employee->address ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>ID Number</th>
+                                    <td>{{ $employee->id_number ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Social Security Number</th>
+                                    <td>{{ $employee->social_security_number ?? 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Status</th>
+                                    <td>
+                                        @if($employee->is_active)
+                                            <span class="badge bg-success">Active</span>
+                                        @else
+                                            <span class="badge bg-danger">Inactive</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>Leave Balance</th>
+                                    <td>{{ $currentBalance ? $currentBalance->remaining_days : 0 }} days remaining</td>
+                                </tr>
+                            </table>
                         </div>
                     </div>
-                    <p><strong>Address:</strong> {{ $employee->address ?? 'N/A' }}</p>
-                    <p><strong>Status:</strong> 
-                        @if($employee->is_active)
-                            <span class="badge bg-success">Active</span>
-                        @else
-                            <span class="badge bg-danger">Inactive</span>
-                        @endif
-                    </p>
+
+                    <div class="row mt-4">
+                        <div class="col-md-4">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h5>Total Leaves</h5>
+                                    <h3>{{ $totalLeaves }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h5>Approved Leaves</h5>
+                                    <h3>{{ $approvedLeaves }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h5>Pending Leaves</h5>
+                                    <h3>{{ $pendingLeaves }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    @if($activeContract)
+                    <div class="mt-4">
+                        <h5>Active Contract</h5>
+                        <table class="table table-bordered">
+                            <tr>
+                                <th width="20%">Position</th>
+                                <td>{{ $activeContract->position }}</td>
+                                <th width="20%">Type</th>
+                                <td>{{ ucfirst($activeContract->type) }}</td>
+                            </tr>
+                            <tr>
+                                <th>Base Salary</th>
+                                <td>{{ number_format($activeContract->base_salary, 2) }} DH</td>
+                                <th>Start Date</th>
+                                <td>{{ $activeContract->start_date->format('d/m/Y') }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>
-        
-        <div class="col-md-4">
-            <div class="card mb-4">
-                <div class="card-header bg-info text-white">
-                    <h4>Statistics</h4>
-                </div>
-                <div class="card-body">
-                    <p><strong>Active Contract:</strong> 
-                        @if($activeContract)
-                            <span class="badge bg-success">Yes</span>
-                        @else
-                            <span class="badge bg-danger">No</span>
-                        @endif
-                    </p>
-                    <p><strong>Total Leaves:</strong> {{ $totalLeaves }}</p>
-                    <p><strong>Pending Leaves:</strong> {{ $pendingLeaves }}</p>
-                    <p><strong>Approved Leaves:</strong> {{ $approvedLeaves }}</p>
-                    <p><strong>Leave Balance:</strong> {{ $currentBalance ? $currentBalance->remaining_days : 0 }} days</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    @if($activeContract)
-    <div class="card mb-4">
-        <div class="card-header bg-success text-white">
-            <h4>Active Contract</h4>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-3">
-                    <p><strong>Position:</strong> {{ $activeContract->position }}</p>
-                </div>
-                <div class="col-md-3">
-                    <p><strong>Type:</strong> {{ $activeContract->type }}</p>
-                </div>
-                <div class="col-md-3">
-                    <p><strong>Base Salary:</strong> {{ number_format($activeContract->base_salary, 2) }} DH</p>
-                </div>
-                <div class="col-md-3">
-                    <p><strong>Start Date:</strong> {{ $activeContract->start_date->format('d/m/Y') }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
-    
-    <div class="mt-3">
-        <a href="{{ route('employees.index') }}" class="btn btn-secondary">Back to List</a>
-        @can('update', $employee)
-            <a href="{{ route('employees.edit', $employee->id) }}" class="btn btn-warning">Edit</a>
-        @endcan
-        @can('delete', $employee)
-            <form action="{{ route('employees.destroy', $employee->id) }}" method="POST" style="display:inline">
-                @csrf
-                @method('DELETE')
-                <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this employee?')">Delete</button>
-            </form>
-        @endcan
     </div>
 </div>
 @endsection

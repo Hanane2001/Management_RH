@@ -28,7 +28,8 @@ class DashboardController extends Controller
     private function adminDashboard()
     {
         $stats = [
-            'total_employees' => User::whereHas('role', fn($q) => $q->where('name', 'employ'))->count(),
+            'total_employees' => User::where('role_id', User::ROLE_EMPLOYEE)->count(),
+            'pending_approvals' => User::where('role_id', User::ROLE_USER)->count(),
             'total_contracts' => Contract::count(),
             'active_contracts' => Contract::whereNull('end_date')->orWhere('end_date', '>', now())->count(),
             'pending_leaves' => Leave::where('status', 'pending')->count(),
@@ -37,24 +38,27 @@ class DashboardController extends Controller
             'expiring_contracts' => Contract::where('end_date', '<=', now()->addMonths(1))->where('end_date', '>', now())->count(),
             'total_evaluations' => Evaluation::count(),
             'average_score' => Evaluation::avg('overall_score'),
-            'excellent_count' => Evaluation::where('overall_score', '>=', 90)->count(),
         ];
         
-        $recent_employees = User::with('role')->whereHas('role', fn($q) => $q->where('name', 'employ'))->latest()->take(5)->get();
+        $recent_employees = User::with('role')->where('role_id', User::ROLE_EMPLOYEE)->latest()->take(5)->get();
+        $pending_approvals = User::with('role')->where('role_id', User::ROLE_USER)->latest()->take(5)->get();
         $pending_leaves = Leave::with('employee')->where('status', 'pending')->latest()->take(5)->get();
         $recent_contracts = Contract::with('employee')->latest()->take(5)->get();
-        return view('dashboard.admin', compact('stats', 'recent_employees', 'pending_leaves', 'recent_contracts'));
+        
+        return view('dashboard.admin', compact('stats', 'recent_employees', 'pending_approvals', 'pending_leaves', 'recent_contracts'));
     }
     
     private function managerDashboard()
     {
-        $employeeIds = User::where('department_id', auth()->user()->department_id)->whereHas('role', fn($q) => $q->where('name', 'employ'))->pluck('id');
+        $employeeIds = User::where('department_id', auth()->user()->department_id)->where('role_id', User::ROLE_EMPLOYEE)->pluck('id');
         $stats = [
             'total_employees' => $employeeIds->count(),
             'total_contracts' => Contract::whereIn('employee_id', $employeeIds)->count(),
             'active_contracts' => Contract::whereIn('employee_id', $employeeIds)->whereNull('end_date')->count(),
             'pending_leaves' => Leave::whereIn('employee_id', $employeeIds)->where('status', 'pending')->count(),
             'approved_leaves' => Leave::whereIn('employee_id', $employeeIds)->where('status', 'approved')->count(),
+            'total_evaluations' => Evaluation::whereIn('employee_id', $employeeIds)->count(),
+            'average_score' => Evaluation::whereIn('employee_id', $employeeIds)->avg('overall_score'),
         ];
         
         $pending_leaves = Leave::with('employee')->whereIn('employee_id', $employeeIds)->where('status', 'pending')->latest()->take(5)->get();

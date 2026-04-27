@@ -49,9 +49,9 @@ class Evaluation extends Model
     public function getPerformanceLevel()
     {
         if ($this->overall_score >= 90) return 'Excellent';
-        if ($this->overall_score >= 75) return 'Très bien';
-        if ($this->overall_score >= 60) return 'Satisfaisant';
+        if ($this->overall_score >= 75) return 'Very Good';
+        if ($this->overall_score >= 60) return 'Satisfactory';
         if ($this->overall_score >= 50) return 'Passable';
-        return 'Insuffisant';
+        return 'Insufficient';
     }
 }

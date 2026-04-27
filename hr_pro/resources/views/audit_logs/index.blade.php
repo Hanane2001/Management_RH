@@ -1,148 +1,106 @@
 @extends('layouts.app')
 
+@section('title', 'Audit Logs')
+
 @section('content')
 <div class="container-fluid">
-    <h1 class="mb-4">Audit Logs</h1>
-    
     <div class="row">
-        <div class="col-md-3">
-            <!-- Statistics Cards -->
-            <div class="card mb-3">
-                <div class="card-header bg-primary text-white">
-                    <h5>Statistics</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-2">
-                        <strong>Total Logs:</strong> {{ number_format($stats['total']) }}
-                    </div>
-                    <div class="mb-2">
-                        <strong>Today:</strong> {{ $stats['today'] }}
-                    </div>
-                    <div class="mb-2">
-                        <strong>This Week:</strong> {{ $stats['this_week'] }}
-                    </div>
-                    <div class="mb-2">
-                        <strong>This Month:</strong> {{ $stats['this_month'] }}
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Actions by Type -->
-            <div class="card mb-3">
-                <div class="card-header bg-info text-white">
-                    <h5>By Action</h5>
-                </div>
-                <div class="card-body">
-                    @foreach($stats['by_action'] as $action)
-                        <div class="d-flex justify-content-between mb-1">
-                            <span>{!! \App\Models\AuditLog::getActionBadgeStatic($action->action) !!}</span>
-                            <span class="badge bg-secondary">{{ $action->count }}</span>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-            
-            <!-- Top Users -->
+        <div class="col-12">
             <div class="card">
-                <div class="card-header bg-warning">
-                    <h5>Top Active Users</h5>
+                <div class="card-header">
+                    <h3 class="card-title">Audit Logs</h3>
+                    <div class="float-end">
+                        <a href="{{ route('audit-logs.dashboard') }}" class="btn btn-info">
+                            <i class="fas fa-chart-line"></i> Dashboard
+                        </a>
+                        <button type="button" class="btn btn-danger ms-2" data-bs-toggle="modal" data-bs-target="#cleanModal">
+                            <i class="fas fa-trash"></i> Clean Old Logs
+                        </button>
+                    </div>
                 </div>
                 <div class="card-body">
-                    @foreach($stats['top_users'] as $top)
-                        <div class="d-flex justify-content-between mb-1">
-                            <span>
-                                @if($top->user_id)
-                                <a href="{{ route('audit-logs.user', $top->user_id) }}">
-                                    {{ $top->user ? $top->user->first_name . ' ' . $top->user->last_name : 'System' }}
-                                </a>
-                                @else
-                                    {{ $top->user ? $top->user->first_name . ' ' . $top->user->last_name : 'System' }}
-                                @endif
-                            </span>
-                            <span class="badge bg-secondary">{{ $top->count }}</span>
-                        </div>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-9">
-            <!-- Filters -->
-            <div class="card mb-3">
-                <div class="card-body">
-                    <form method="GET" action="{{ route('audit-logs.index') }}" class="row">
-                        <div class="col-md-3 mb-2">
-                            <label>User</label>
-                            <select name="user_id" class="form-control">
-                                <option value="">All Users</option>
-                                @foreach($users as $user)
+                    <!-- Filters -->
+                    <form method="GET" action="{{ route('audit-logs.index') }}" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ request('search') }}">
+                            </div>
+                            <div class="col-md-2">
+                                <select name="user_id" class="form-control">
+                                    <option value="">All Users</option>
+                                    @foreach($users as $user)
                                     <option value="{{ $user->id }}" {{ request('user_id') == $user->id ? 'selected' : '' }}>
-                                        {{ $user->first_name }} {{ $user->last_name }}
+                                        {{ $user->getFullName() }}
                                     </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-2 mb-2">
-                            <label>Action</label>
-                            <select name="action" class="form-control">
-                                <option value="">All</option>
-                                @foreach($actions as $action)
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <select name="action" class="form-control">
+                                    <option value="">All Actions</option>
+                                    @foreach($actions as $action)
                                     <option value="{{ $action }}" {{ request('action') == $action ? 'selected' : '' }}>
                                         {{ ucfirst($action) }}
                                     </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-2 mb-2">
-                            <label>Entity Type</label>
-                            <select name="entity_type" class="form-control">
-                                <option value="">All</option>
-                                @foreach($entityTypes as $type)
-                                    <option value="{{ $type }}" {{ request('entity_type') == $type ? 'selected' : '' }}>
-                                        {{ $type }}
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <select name="entity_type" class="form-control">
+                                    <option value="">All Entities</option>
+                                    @foreach($entityTypes as $entity)
+                                    <option value="{{ $entity }}" {{ request('entity_type') == $entity ? 'selected' : '' }}>
+                                        {{ $entity }}
                                     </option>
-                                @endforeach
-                            </select>
-                        </div>
-                        <div class="col-md-2 mb-2">
-                            <label>Date From</label>
-                            <input type="date" name="date_from" class="form-control" value="{{ request('date_from') }}">
-                        </div>
-                        <div class="col-md-2 mb-2">
-                            <label>Date To</label>
-                            <input type="date" name="date_to" class="form-control" value="{{ request('date_to') }}">
-                        </div>
-                        <div class="col-md-1 mb-2">
-                            <label>&nbsp;</label>
-                            <button type="submit" class="btn btn-primary form-control">Filter</button>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="date" name="date_from" class="form-control" placeholder="From" value="{{ request('date_from') }}">
+                            </div>
+                            <div class="col-md-1">
+                                <button type="submit" class="btn btn-primary w-100">Filter</button>
+                            </div>
                         </div>
                     </form>
-                    
-                    <form method="GET" action="{{ route('audit-logs.index') }}" class="row mt-2">
-                        <div class="col-md-10">
-                            <input type="text" name="search" class="form-control" placeholder="Search..." value="{{ request('search') }}">
+
+                    <div class="row mb-4">
+                        <div class="col-md-3">
+                            <div class="card bg-primary text-white">
+                                <div class="card-body text-center">
+                                    <h5>Total Logs</h5>
+                                    <h3>{{ $stats['total'] }}</h3>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-2">
-                            <button type="submit" class="btn btn-secondary w-100">Search</button>
+                        <div class="col-md-3">
+                            <div class="card bg-info text-white">
+                                <div class="card-body text-center">
+                                    <h5>Today</h5>
+                                    <h3>{{ $stats['today'] }}</h3>
+                                </div>
+                            </div>
                         </div>
-                    </form>
-                </div>
-            </div>
-            
-            <!-- Actions -->
-            <div class="mb-3">
-                <a href="{{ route('audit-logs.export', request()->query()) }}" class="btn btn-success">Export CSV</a>
-                <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cleanModal">
-                    Clean Old Logs
-                </button>
-                <a href="{{ route('audit-logs.dashboard') }}" class="btn btn-info">Dashboard</a>
-            </div>
-            
-            <!-- Logs Table -->
-            <div class="card">
-                <div class="card-body">
+                        <div class="col-md-3">
+                            <div class="card bg-success text-white">
+                                <div class="card-body text-center">
+                                    <h5>This Week</h5>
+                                    <h3>{{ $stats['this_week'] }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="card bg-warning text-white">
+                                <div class="card-body text-center">
+                                    <h5>This Month</h5>
+                                    <h3>{{ $stats['this_month'] }}</h3>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div class="table-responsive">
-                        <table class="table table-bordered table-striped">
+                        <table class="table table-bordered table-striped table-sm">
                             <thead>
                                 <tr>
                                     <th>ID</th>
@@ -151,76 +109,94 @@
                                     <th>Entity</th>
                                     <th>Entity ID</th>
                                     <th>Changes</th>
-                                    <th>Date/Time</th>
+                                    <th>Created At</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @forelse($logs as $log)
+                                @foreach($logs as $log)
                                 <tr>
-                                    <td>{{ $log->id }}</td>
+                                    <td>{{ $log->id }}</a></td>
                                     <td>
                                         @if($log->user)
-                                            <a href="{{ route('audit-logs.user', $log->user_id) }}">
-                                                {{ $log->user->first_name }} {{ $log->user->last_name }}
-                                            </a>
+                                        <a href="{{ route('audit-logs.user', $log->user_id) }}">
+                                            {{ $log->user->getFullName() }}
+                                        </a>
                                         @else
                                             System
                                         @endif
-                                    </td>
-                                    <td>{!! $log->getActionBadge() !!}</td>
+                                    </a></td>
+                                    <td>{!! $log->getActionBadge() !!}</a></td>
                                     <td>
-                                        {{ $log->getEntityIcon() }} {{ $log->entity_type }}
-                                    </td>
-                                    <td>{{ $log->entity_id ?? '-' }}</td>
-                                    <td>{{ $log->getChangesSummary() }}</td>
-                                    <td>{{ $log->created_at->format('d/m/Y H:i:s') }}</td>
+                                        <a href="{{ route('audit-logs.entity', ['entityType' => $log->entity_type, 'entityId' => $log->entity_id]) }}">
+                                            {{ $log->entity_type }}
+                                        </a>
+                                    </a></td>
+                                    <td>{{ $log->entity_id }}</a></td>
                                     <td>
-                                        <a href="{{ route('audit-logs.show', $log) }}" class="btn btn-sm btn-info">View</a>
-                                        @if($log->entity_id)
-                                            <a href="{{ route('audit-logs.entity', [$log->entity_type, $log->entity_id]) }}" class="btn btn-sm btn-secondary">History</a>
+                                        @if($log->action == 'create')
+                                            <span class="text-success">Created record</span>
+                                        @elseif($log->action == 'delete')
+                                            <span class="text-danger">Deleted record</span>
+                                        @elseif($log->action == 'update' && $log->old_values && $log->new_values)
+                                            <span class="text-warning">
+                                                @php
+                                                    $changes = [];
+                                                    foreach($log->new_values as $key => $value) {
+                                                        if(isset($log->old_values[$key]) && $log->old_values[$key] != $value) {
+                                                            $changes[] = $key;
+                                                        }
+                                                    }
+                                                    echo 'Updated: ' . implode(', ', array_slice($changes, 0, 3));
+                                                    if(count($changes) > 3) echo '...';
+                                                @endphp
+                                            </span>
+                                        @else
+                                            {{ $log->action }}
                                         @endif
-                                    </td>
+                                    </a></td>
+                                    <td>{{ $log->created_at->format('d/m/Y H:i:s') }}</a></td>
+                                    <td>
+                                        <a href="{{ route('audit-logs.show', $log) }}" class="btn btn-sm btn-info">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </a>
                                 </tr>
-                                @empty
-                                    <tr>
-                                        <td colspan="8" class="text-center">No audit logs found</td>
-                                    </tr>
-                                @endforelse
+                                @endforeach
                             </tbody>
                         </table>
                     </div>
-                    
-                    {{ $logs->appends(request()->query())->links() }}
+                    {{ $logs->links() }}
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Clean Modal -->
 <div class="modal fade" id="cleanModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Clean Old Audit Logs</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
             <form method="POST" action="{{ route('audit-logs.clean') }}">
                 @csrf
                 @method('DELETE')
-                <div class="modal-header">
-                    <h5 class="modal-title">Clean Old Logs</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label>Delete logs older than (days)</label>
-                        <input type="number" name="days" class="form-control" min="1" max="365" required>
+                        <label for="days" class="form-label">Delete logs older than (days)</label>
+                        <input type="number" class="form-control" name="days" min="1" max="365" required>
+                        <small class="text-muted">Recommended: 90 days</small>
                     </div>
                     <div class="alert alert-warning">
-                        This action cannot be undone. Are you sure?
+                        <i class="fas fa-exclamation-triangle"></i>
+                        This action cannot be undone. Old logs will be permanently deleted.
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-danger">Delete</button>
+                    <button type="submit" class="btn btn-danger">Delete Logs</button>
                 </div>
             </form>
         </div>

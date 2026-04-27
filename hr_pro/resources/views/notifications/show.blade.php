@@ -1,69 +1,73 @@
 @extends('layouts.app')
 
+@section('title', 'Notification Details')
+
 @section('content')
-<div class="container">
-    <h1 class="mb-4">Notification Details</h1>
-    
-    <div class="row">
+<div class="container-fluid">
+    <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card">
-                <div class="card-header bg-primary text-white">
-                    <h4>{{ $notification->title }}</h4>
+                <div class="card-header">
+                    <h3 class="card-title">Notification Details</h3>
+                    <a href="{{ route('notifications.index') }}" class="btn btn-secondary float-end">Back</a>
                 </div>
                 <div class="card-body">
-                    <div class="mb-3">
-                        <strong>To:</strong> {{ $notification->user->first_name }} {{ $notification->user->last_name }}
-                        ({{ $notification->user->email }})
+                    <div class="mb-4">
+                        <h4>{{ $notification->title }}</h4>
+                        <div class="text-muted mb-3">
+                            <i class="fas fa-user"></i> To: {{ $notification->user->getFullName() }} |
+                            <i class="fas fa-clock"></i> {{ $notification->created_at->format('d/m/Y H:i:s') }} |
+                            <i class="fas fa-tag"></i> 
+                            <span class="badge bg-{{ $notification->type == 'email' ? 'info' : ($notification->type == 'sms' ? 'success' : 'primary') }}">
+                                {{ ucfirst($notification->type) }}
+                            </span>
+                            @if($notification->is_read)
+                            <span class="badge bg-success">Read</span>
+                            @else
+                            <span class="badge bg-warning">Unread</span>
+                            @endif
+                        </div>
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                {{ nl2br(e($notification->message)) }}
+                            </div>
+                        </div>
                     </div>
-                    <div class="mb-3">
-                        <strong>Type:</strong> {!! $notification->getTypeBadge() !!}
+                    
+                    @if($notification->sent_at)
+                    <div class="alert alert-info">
+                        <i class="fas fa-paper-plane"></i> Sent at: {{ $notification->sent_at->format('d/m/Y H:i:s') }}
                     </div>
-                    <div class="mb-3">
-                        <strong>Status:</strong> {!! $notification->getStatusBadge() !!}
-                    </div>
-                    <div class="mb-3">
-                        <strong>Sent at:</strong> {{ $notification->sent_at ? $notification->sent_at->format('d/m/Y H:i:s') : $notification->created_at->format('d/m/Y H:i:s') }}
-                    </div>
-                    <hr>
-                    <div class="mb-3">
-                        <strong>Message:</strong>
-                        <p class="mt-2">{{ $notification->message }}</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-header bg-info text-white">
-                    <h5>Actions</h5>
-                </div>
-                <div class="card-body">
-                    @if(!$notification->is_read)
-                        <form action="{{ route('notifications.mark-read', $notification) }}" method="POST" class="mb-2">
-                            @csrf
-                            <button type="submit" class="btn btn-success w-100">Mark as Read</button>
-                        </form>
                     @endif
                     
-                    @can('update', $notification)
-                        <a href="{{ route('notifications.edit', $notification) }}" class="btn btn-warning w-100 mb-2">Edit</a>
-                    @endcan
-                    
-                    @can('delete', $notification)
-                        <form action="{{ route('notifications.destroy', $notification) }}" method="POST">
+                    <div class="d-flex justify-content-end gap-2">
+                        @if(!$notification->is_read)
+                        <form method="POST" action="{{ route('notifications.mark-read', $notification) }}">
+                            @csrf
+                            <button type="submit" class="btn btn-success">
+                                <i class="fas fa-check"></i> Mark as Read
+                            </button>
+                        </form>
+                        @endif
+                        @can('update', $notification)
+                        <a href="{{ route('notifications.edit', $notification) }}" class="btn btn-warning">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        @endcan
+                        @can('delete', $notification)
+                        <form method="POST" action="{{ route('notifications.destroy', $notification) }}" 
+                              onsubmit="return confirm('Delete this notification?')">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Delete this notification?')">Delete</button>
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
                         </form>
-                    @endcan
+                        @endcan
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <div class="mt-3">
-        <a href="{{ route('notifications.index') }}" class="btn btn-secondary">Back to Notifications</a>
     </div>
 </div>
 @endsection

@@ -1,89 +1,100 @@
 @extends('layouts.app')
 
+@section('title', 'Leave Balance Details')
+
 @section('content')
-<div class="container">
-    <h1>Détail du solde de congés</h1>
-    
-    <div class="card">
-        <div class="card-header bg-primary text-white">
-            <h4>{{ $leaveBalance->employee->first_name }} {{ $leaveBalance->employee->last_name }}</h4>
-        </div>
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6">
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">Leave Balance Details</h3>
+                    <a href="{{ route('leave-balances.index') }}" class="btn btn-secondary float-end">Back</a>
+                </div>
+                <div class="card-body">
                     <table class="table table-bordered">
                         <tr>
-                            <th>Année</th>
-                            <td>{{ $leaveBalance->year }}</td>
-                        </tr>
+                            <th width="40%">Employee</th>
+                            <td>{{ $leaveBalance->employee->getFullName() }} </a>
+                        </a>
                         <tr>
-                            <th>Email</th>
-                            <td>{{ $leaveBalance->employee->email }}</td>
-                        </tr>
+                            <th>Year</th>
+                            <td>{{ $leaveBalance->year }} </a>
+                        </a>
                         <tr>
-                            <th>Département</th>
-                            <td>{{ $leaveBalance->employee->department->name ?? 'Non assigné' }}</td>
-                        </tr>
+                            <th>Total Days</th>
+                            <td>{{ $leaveBalance->total_days }} </a>
+                        </a>
                         <tr>
-                            <th>Date de création</th>
-                            <td>{{ $leaveBalance->created_at->format('d/m/Y H:i') }}</td>
-                        </tr>
+                            <th>Used Days</th>
+                            <td>{{ $leaveBalance->used_days }} </a>
+                        </a>
                         <tr>
-                            <th>Dernière modification</th>
-                            <td>{{ $leaveBalance->updated_at->format('d/m/Y H:i') }}</td>
-                        </tr>
+                            <th>Remaining Days</th>
+                            <td><strong class="text-{{ $leaveBalance->remaining_days < 5 ? 'danger' : 'success' }}">{{ $leaveBalance->remaining_days }}</strong> </a>
+                        </a>
+                        <tr>
+                            <th>Usage Percentage</th>
+                            <td>
+                                <div class="progress" style="height: 25px;">
+                                    <div class="progress-bar bg-{{ $leaveBalance->getUsedPercentage() > 80 ? 'danger' : ($leaveBalance->getUsedPercentage() > 50 ? 'warning' : 'success') }}" 
+                                         style="width: {{ $leaveBalance->getUsedPercentage() }}%">
+                                        {{ number_format($leaveBalance->getUsedPercentage(), 1) }}%
+                                    </div>
+                                </div>
+                            </a>
+                        </a>
                     </table>
-                </div>
-                <div class="col-md-6">
-                    <div class="card bg-light">
-                        <div class="card-body text-center">
-                            <h3>Solde de congés {{ $leaveBalance->year }}</h3>
-                            <div class="row mt-4">
-                                <div class="col-md-4">
-                                    <div class="alert alert-info">
-                                        <h5>Total</h5>
-                                        <h2>{{ $leaveBalance->total_days }}</h2>
-                                        <small>jours</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="alert alert-warning">
-                                        <h5>Utilisés</h5>
-                                        <h2>{{ $leaveBalance->used_days }}</h2>
-                                        <small>jours</small>
-                                    </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <div class="alert alert-success">
-                                        <h5>Restant</h5>
-                                        <h2>{{ $leaveBalance->remaining_days }}</h2>
-                                        <small>jours</small>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="progress mt-3" style="height: 30px;">
-                                <div class="progress-bar {{ $leaveBalance->getUsedPercentage() > 80 ? 'bg-danger' : ($leaveBalance->getUsedPercentage() > 50 ? 'bg-warning' : 'bg-success') }}" 
-                                     role="progressbar" 
-                                     style="width: {{ $leaveBalance->getUsedPercentage() }}%"
-                                     aria-valuenow="{{ $leaveBalance->getUsedPercentage() }}" 
-                                     aria-valuemin="0" 
-                                     aria-valuemax="100">
-                                    {{ number_format($leaveBalance->getUsedPercentage(), 1) }}% utilisé
-                                </div>
-                            </div>
-                        </div>
+                    
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                        @can('update', $leaveBalance)
+                        <a href="{{ route('leave-balances.edit', $leaveBalance) }}" class="btn btn-warning">Edit Balance</a>
+                        @endcan
+                        @can('addDays', $leaveBalance)
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addDaysModal">
+                            <i class="fas fa-plus-circle"></i> Add Days
+                        </button>
+                        @endcan
+                        @can('delete', $leaveBalance)
+                        <form method="POST" action="{{ route('leave-balances.destroy', $leaveBalance) }}" class="d-inline" 
+                              onsubmit="return confirm('Are you sure?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="btn btn-danger">Delete Balance</button>
+                        </form>
+                        @endcan
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    
-    <div class="mt-3">
-        <a href="{{ route('leave-balances.index') }}" class="btn btn-secondary">Retour à la liste</a>
-        @if(auth()->user()->isAdmin())
-            <a href="{{ route('leave-balances.edit', $leaveBalance) }}" class="btn btn-warning">Modifier</a>
-        @endif
+</div>
+
+@can('addDays', $leaveBalance)
+<!-- Add Days Modal -->
+<div class="modal fade" id="addDaysModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add Days to Balance</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{{ route('leave-balances.add-days', $leaveBalance) }}">
+                @csrf
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="days" class="form-label">Number of Days to Add</label>
+                        <input type="number" class="form-control" name="days" min="1" required>
+                        <small class="text-muted">Current remaining: {{ $leaveBalance->remaining_days }} days</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Days</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
+@endcan
 @endsection

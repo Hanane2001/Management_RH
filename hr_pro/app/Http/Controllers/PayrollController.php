@@ -11,7 +11,6 @@ use App\Http\Requests\UpdatePayrollRequest;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Carbon\Carbon;
-use PDF;
 
 class PayrollController extends Controller
 {
@@ -182,14 +181,14 @@ class PayrollController extends Controller
             'bonuses' => 0,
             'allowances' => 0,
             'deductions' => 0,
-            'status' => 'draft'
+            'status' => 'generated'
         ];
         
         $payrollData['net_pay'] = $this->calculateNetPay($payrollData);
         
         $payroll = Payroll::create($payrollData);
         
-        return redirect()->route('payrolls.edit', $payroll)->with('success', 'Payroll generated from contract. You can now add bonuses, allowances, etc.');
+        return redirect()->route('payrolls.edit', $payroll)->with('success', 'Payroll generated from contract');
     }
 
     public function generateAll(Request $request)
@@ -223,7 +222,7 @@ class PayrollController extends Controller
                         'bonuses' => 0,
                         'allowances' => 0,
                         'deductions' => 0,
-                        'status' => 'draft',
+                        'status' => 'generated',
                         'net_pay' => $contract->base_salary
                     ]);
                     $created++;
@@ -235,7 +234,7 @@ class PayrollController extends Controller
             }
         }
         
-        return redirect()->route('payrolls.index')->with('success', "Generated $created payrolls. Skipped $skipped (already exist or no contract)");
+        return redirect()->route('payrolls.index')->with('success', "Generated $created payrolls. Skipped $skipped");
     }
 
     public function approve(Payroll $payroll)
@@ -266,65 +265,6 @@ class PayrollController extends Controller
         $payroll->update(['status' => 'paid']);
         
         return redirect()->route('payrolls.index')->with('success', 'Payroll marked as paid');
-    }
-
-    public function generatePdf(Payroll $payroll)
-    {
-        if (Gate::denies('view', $payroll)) {
-            abort(403);
-        }
-        
-        $payroll->load('employee');
-        
-        $pdf = PDF::loadView('payrolls.pdf', compact('payroll'));
-        
-        return $pdf->download("payroll_{$payroll->employee->first_name}_{$payroll->month}_{$payroll->year}.pdf");
-    }
-
-    public function export(Request $request)
-    {
-        if (Gate::denies('viewAny', Payroll::class)) {
-            abort(403);
-        }
-        
-        $user = auth()->user();
-        $month = $request->get('month', Carbon::now()->month);
-        $year = $request->get('year', Carbon::now()->year);
-        
-        if ($user->isAdmin()) {
-            $payrolls = Payroll::with('employee')->where('month', $month)->where('year', $year)->get();
-        } elseif ($user->isManager()) {
-            $employeeIds = User::where('department_id', $user->department_id)->where('role_id', User::ROLE_EMPLOYEE)->pluck('id');
-            $payrolls = Payroll::with('employee')->whereIn('employee_id', $employeeIds)->where('month', $month)->where('year', $year)->get();
-        } else {
-            $payrolls = Payroll::with('employee')->where('employee_id', $user->id)->where('month', $month)->where('year', $year)->get();
-        }
-        
-        $filename = "payrolls_{$year}_{$month}.csv";
-        $handle = fopen('php://temp', 'w');
-        
-        fputcsv($handle, ['Employee', 'Month', 'Year', 'Base Salary', 'Overtime Hours', 'Bonuses', 'Allowances', 'Deductions', 'Net Pay', 'Status']);
-        
-        foreach ($payrolls as $payroll) {
-            fputcsv($handle, [
-                $payroll->employee->first_name . ' ' . $payroll->employee->last_name,
-                $payroll->getMonthName(),
-                $payroll->year,
-                $payroll->base_salary,
-                $payroll->overtime_hours,
-                $payroll->bonuses,
-                $payroll->allowances,
-                $payroll->deductions,
-                $payroll->net_pay,
-                $payroll->status
-            ]);
-        }
-        
-        rewind($handle);
-        $csv = stream_get_contents($handle);
-        fclose($handle);
-        
-        return response($csv, 200)->header('Content-Type', 'text/csv')->header('Content-Disposition', "attachment; filename=\"$filename\"");
     }
 
     private function calculateNetPay($data)

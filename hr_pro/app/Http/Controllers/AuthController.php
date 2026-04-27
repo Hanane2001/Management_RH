@@ -74,14 +74,13 @@ class AuthController extends Controller
             'email' => $request->email,
             'password' => Hash::make($request->password),
             'phone' => $request->phone,
-            'role_id' => User::ROLE_EMPLOYEE,
+            'role_id' => User::ROLE_USER,
             'department_id' => $request->department_id,
             'is_active' => true,
         ]);
         AuditLogService::logCreate('User', $user);
-
         $this->setUserOtp($user);
-        return redirect('/otp');
+        return redirect('/otp')->with('info', 'Account created. Waiting for admin approval.');
     }
 
     public function showLogin(){
@@ -96,6 +95,11 @@ class AuthController extends Controller
         if (!$user->is_active) {
             return back()->with('error', 'Account disabled');
         }
+
+        if ($user->isUser()) {
+            return back()->with('error', 'Your account is pending approval by an administrator.');
+        }
+
         AuditLogService::log('login', 'User', $user->id, null, ['email' => $user->email, 'status' => 'pending_otp']);
         $this->setUserOtp($user);
         return redirect('/otp');
@@ -131,6 +135,12 @@ class AuthController extends Controller
                 'email_verified_at' => now()
             ]);
             $this->clearUserOtp($user);
+            
+            if ($user->isUser()) {
+                Auth::logout();
+                return redirect('/login')->with('error', 'Your account is pending approval. Please wait for an administrator to activate your account.');
+            }
+            
             Auth::login($user);
             $request->session()->regenerate();
             session()->forget('user_temp');
@@ -155,7 +165,6 @@ class AuthController extends Controller
             return back()->with('error', 'Email not found');
         }
         AuditLogService::log('password_reset_request', 'User', $user->id, null, ['email' => $user->email]);
-
         $this->setUserOtp($user, 'reset_user');
         return redirect('/reset-otp');
     }
@@ -200,7 +209,6 @@ class AuthController extends Controller
         if (!$user) {
             return redirect('/login');
         }
-        $oldPassword = $user->password;
         $user->update([
             'password' => Hash::make($request->password)
         ]);

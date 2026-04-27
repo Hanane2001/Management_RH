@@ -36,7 +36,7 @@ class EvaluationController extends Controller
     public function create()
     {
         if (Gate::denies('create', Evaluation::class)) {
-            abort(403, 'Seul le manager peut créer des évaluations.');
+            abort(403, 'Only manager can create Evaluation.');
         }
         $user = auth()->user();
         
@@ -60,7 +60,7 @@ class EvaluationController extends Controller
             'overall_score' => $request->overall_score,
             'comments' => $request->comments
         ]);
-        return redirect()->route('evaluations.index')->with('success', 'Évaluation créée avec succès');
+        return redirect()->route('evaluations.index')->with('success', 'Evaluation created successfully');
     }
 
     /**
@@ -82,7 +82,7 @@ class EvaluationController extends Controller
     public function edit(Evaluation $evaluation)
     {
         if (Gate::denies('update', $evaluation)) {
-            abort(403, 'Seul le manager peut modifier des évaluations.');
+            abort(403, 'Only manager can edit Evaluation.');
         }
         
         $user = auth()->user();
@@ -100,7 +100,7 @@ class EvaluationController extends Controller
             abort(403);
         }
         $evaluation->update($request->validated());
-        return redirect()->route('evaluations.index')->with('success', 'Évaluation mise à jour avec succès');
+        return redirect()->route('evaluations.index')->with('success', 'Evaluation updated successfully');
     }
 
     /**
@@ -113,7 +113,7 @@ class EvaluationController extends Controller
         }
         
         $evaluation->delete();
-        return redirect()->route('evaluations.index')->with('success', 'Évaluation supprimée avec succès');
+        return redirect()->route('evaluations.index')->with('success', 'Evaluation deleted successfully');
     }
 
     public function statistics()
@@ -152,42 +152,5 @@ class EvaluationController extends Controller
         }
         
         return view('evaluations.statistics', compact('stats'));
-    }
-
-    public function export()
-    {
-        $user = auth()->user();
-        
-        if ($user->isAdmin()) {
-            $evaluations = Evaluation::with(['employee', 'evaluator'])->get();
-        } elseif ($user->isManager()) {
-            $employeeIds = User::where('department_id', $user->department_id)->where('role_id', User::ROLE_EMPLOYEE)->pluck('id');
-            $evaluations = Evaluation::with(['employee', 'evaluator'])->whereIn('employee_id', $employeeIds)->get();
-        } else {
-            $evaluations = Evaluation::with('evaluator')->where('employee_id', $user->id)->get();
-        }
-        
-        $filename = "evaluations_" . date('Y-m-d') . ".csv";
-        $handle = fopen('php://temp', 'w');
-        
-        fputcsv($handle, ['Employé', 'Évaluateur', 'Date', 'Période', 'Score', 'Performance', 'Commentaires']);
-        
-        foreach ($evaluations as $eval) {
-            fputcsv($handle, [
-                $eval->employee->first_name . ' ' . $eval->employee->last_name,
-                $eval->evaluator->first_name . ' ' . $eval->evaluator->last_name,
-                $eval->evaluation_date->format('d/m/Y'),
-                $eval->period,
-                $eval->overall_score . '%',
-                $eval->getPerformanceLevel(),
-                $eval->comments ?? ''
-            ]);
-        }
-        
-        rewind($handle);
-        $csv = stream_get_contents($handle);
-        fclose($handle);
-        
-        return response($csv, 200)->header('Content-Type', 'text/csv')->header('Content-Disposition', "attachment; filename=\"$filename\"");
     }
 }

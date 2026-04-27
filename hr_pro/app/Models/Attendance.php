@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use App\Traits\Auditable;
+use Carbon\Carbon;
 
 class Attendance extends Model
 {
@@ -58,8 +59,8 @@ class Attendance extends Model
     public function isLate()
     {
         if ($this->check_in) {
-            $checkInTime = \Carbon\Carbon::parse($this->check_in);
-            $expectedTime = \Carbon\Carbon::parse($this->date->format('Y-m-d') . ' 09:00:00');
+            $checkInTime = Carbon::parse($this->check_in);
+            $expectedTime = Carbon::parse($this->date->format('Y-m-d') . ' 09:00:00');
             return $checkInTime > $expectedTime;
         }
         return false;
@@ -67,11 +68,11 @@ class Attendance extends Model
 
     public function getCheckInFormatted()
     {
-        return $this->check_in ? \Carbon\Carbon::parse($this->check_in)->format('H:i:s') : '--:--';
+        return $this->check_in ? Carbon::parse($this->check_in)->format('H:i:s') : '--:--';
     }
 
     public function getCheckOutFormatted()
     {
-        return $this->check_out ? \Carbon\Carbon::parse($this->check_out)->format('H:i:s') : '--:--';
+        return $this->check_out ? Carbon::parse($this->check_out)->format('H:i:s') : '--:--';
     }
 }

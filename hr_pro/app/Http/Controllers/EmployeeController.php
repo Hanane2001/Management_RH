@@ -8,16 +8,12 @@ use App\Models\User;
 use App\Models\Department;
 use App\Http\Requests\StoreEmployeeRequest;
 use App\Http\Requests\UpdateEmployeeRequest;
+use App\Services\AuditLogService;
 use Illuminate\Support\Facades\Gate;
 
 
 class EmployeeController extends Controller
 {
-    public function checkEmployee($employee){
-        if(!$employee->role || $employee->role->name !== 'employ'){
-            abort(404, 'Employee not found');
-        }
-    }
     /**
      * Display a listing of the resource.
      */
@@ -26,7 +22,7 @@ class EmployeeController extends Controller
         if (Gate::denies('viewAny', User::class)) {
             abort(403);
         }
-        $employees = User::with(['role', 'department'])->whereHas('role', fn($q) => $q->where('name', 'employ'))->latest()->paginate(10);
+        $employees = User::with(['role', 'department'])->whereIn('role_id', [User::ROLE_EMPLOYEE, User::ROLE_USER])->latest()->paginate(10);
         return view('employee.index', compact('employees'));
     }
 
@@ -67,13 +63,30 @@ class EmployeeController extends Controller
         return redirect()->route('employees.index')->with('success', 'Employee added successfully');
     }
 
+    public function approve(User $employee){
+        if (Gate::denies('update', $employee)) {
+            abort(403);
+        }
+        
+        if (!$employee->isUser()) {
+            return back()->with('error', 'User is not pending approval');
+        }
+        
+        $employee->update([
+            'role_id' => User::ROLE_EMPLOYEE
+        ]);
+        
+        AuditLogService::logUpdate('User', $employee, ['role_id' => User::ROLE_USER]);
+        
+        return redirect()->route('employees.index')->with('success', 'User approved successfully');
+    }
+
     /**
      * Display the specified resource.
      */
     public function show(string $id)
     {
         $employee = User::with(['role', 'department', 'contracts', 'leaves'])->findOrFail($id);
-        $this->checkEmployee($employee);
         if (Gate::denies('view', $employee)) {
             abort(403);
         }
@@ -92,7 +105,6 @@ class EmployeeController extends Controller
    public function edit(string $id)
     {
         $employee = User::with('role')->findOrFail($id);
-        $this->checkEmployee($employee);
         if (Gate::denies('update', $employee)) {
             abort(403);
         }
@@ -106,7 +118,6 @@ class EmployeeController extends Controller
     public function update(UpdateEmployeeRequest $request, string $id)
     {
         $employee = User::with('role')->findOrFail($id);
-        $this->checkEmployee($employee);
         if (Gate::denies('update', $employee)) {
             abort(403);
         }
@@ -130,7 +141,6 @@ class EmployeeController extends Controller
     public function destroy(string $id)
     {
         $employee = User::with('role')->findOrFail($id);
-        $this->checkEmployee($employee);
         if (Gate::denies('delete', $employee)) {
             abort(403);
         }

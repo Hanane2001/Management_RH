@@ -66,7 +66,7 @@ class LeaveController extends Controller
             $balance = LeaveBalance::where('employee_id', $user->id)->where('year', date('Y'))->first();
             
             if (!$balance || $balance->remaining_days < $duration) {
-                return back()->with('error', 'Solde de congés insuffisant. Solde restant: ' . ($balance->remaining_days ?? 0) . ' jours');
+                return back()->with('error', 'Insufficient leave balance. Remaining days: ' . ($balance->remaining_days ?? 0));
             }
         }
         Leave::create([
@@ -79,7 +79,7 @@ class LeaveController extends Controller
             'status' => 'pending',
             'request_date' => now()
         ]);
-        return redirect()->route('leaves.index')->with('success', 'Demande de congé envoyée avec succès');
+        return redirect()->route('leaves.index')->with('success', 'Leave request submitted successfully');
     }
 
     /**
@@ -88,9 +88,6 @@ class LeaveController extends Controller
     public function show(Leave $leave)
     {
         $user = auth()->user();
-            if ($user->isEmployee() && $leave->employee_id !== $user->id) {
-            abort(403);
-        }
         if (!$user->isManager() && !$user->isAdmin() && $leave->employee_id !== $user->id) {
             abort(403);
         }
@@ -104,7 +101,7 @@ class LeaveController extends Controller
             abort(403);
         }
         if (!$leave->isPending()) {
-            return back()->with('error', 'Cette demande a déjà été traitée');
+            return back()->with('error', 'This request has already been processed');
         }
         DB::transaction(function () use ($leave) {
             $leave->update([
@@ -128,7 +125,7 @@ class LeaveController extends Controller
             }
         });
         
-        return redirect()->route('leaves.index')->with('success', 'Demande de congé approuvée');
+        return redirect()->route('leaves.index')->with('success', 'Leave request approved');
     }
 
     public function reject(Leave $leave)
@@ -137,7 +134,7 @@ class LeaveController extends Controller
             abort(403);
         }
         if (!$leave->isPending()) {
-            return back()->with('error', 'Cette demande a déjà été traitée');
+            return back()->with('error', 'This request has already been processed');
         }
         $leave->update([
             'status' => 'rejected',
@@ -145,13 +142,13 @@ class LeaveController extends Controller
             'processed_by' => auth()->id()
         ]);
         
-        return redirect()->route('leaves.index')->with('success', 'Demande de congé refusée');
+        return redirect()->route('leaves.index')->with('success', 'Leave request rejected');
     }
 
     public function balance()
     {
         $user = auth()->user();
-        $balances = LeaveBalance::where('employee_id', $user->id)->orderBy('year', 'desc') ->get();
+        $balances = LeaveBalance::where('employee_id', $user->id)->orderBy('year', 'desc')->get();
         $currentBalance = $balances->first();
         return view('leaves.balance', compact('balances', 'currentBalance'));
     }

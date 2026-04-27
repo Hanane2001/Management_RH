@@ -57,6 +57,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('isAdmin', fn(User $user) => $user->isAdmin());
         Gate::define('isManager', fn(User $user) => $user->isManager());
         Gate::define('isEmployee', fn(User $user) => $user->isEmployee());
+        Gate::define('isUser', fn(User $user) => $user->isUser());
 
         Gate::define('manage-contracts', fn(User $user) => $user->isAdmin() || $user->isManager());
         Gate::define('manage-employees', fn(User $user) => $user->isAdmin());
@@ -64,5 +65,8 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('view-reports', fn(User $user) => $user->isAdmin() || $user->isManager());
         Gate::define('manage-departments', fn(User $user) => $user->isAdmin());
         Gate::define('view-audit-logs', fn(User $user) => $user->isAdmin());
+        Gate::define('manage-payrolls', fn(User $user) => $user->isAdmin() || $user->isManager());
+        Gate::define('manage-evaluations', fn(User $user) => $user->isManager() || $user->isAdmin());
+        Gate::define('manage-documents', fn(User $user) => $user->isAdmin() || $user->isManager() || $user->isEmployee());
     }
 }

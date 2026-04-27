@@ -170,9 +170,6 @@ class AttendanceController extends Controller
         return redirect()->route('dashboard')->with('success', 'Checked in successfully at ' . Carbon::now()->format('H:i:s'));
     }
 
-    /**
-     * Check-out for current user.
-     */
     public function checkOut()
     {
         $user = auth()->user();
@@ -194,9 +191,6 @@ class AttendanceController extends Controller
         return redirect()->route('dashboard')->with('success', 'Checked out successfully at ' . Carbon::now()->format('H:i:s') . ' - Hours worked: ' . $attendance->hours_worked);
     }
 
-    /**
-     * Display attendance report.
-     */
     public function report(Request $request)
     {
         if (Gate::denies('viewAny', Attendance::class)) {
@@ -223,54 +217,6 @@ class AttendanceController extends Controller
         return view('attendances.report', compact('attendances', 'stats', 'month', 'year', 'months', 'years'));
     }
 
-    /**
-     * Export attendance to CSV.
-     */
-    public function export(Request $request)
-    {
-        if (Gate::denies('viewAny', Attendance::class)) {
-            abort(403);
-        }
-        
-        $user = auth()->user();
-        $month = $request->get('month', Carbon::now()->month);
-        $year = $request->get('year', Carbon::now()->year);
-        
-        if ($user->isAdmin()) {
-            $attendances = Attendance::with('employee')->whereYear('date', $year)->whereMonth('date', $month)->get();
-        } elseif ($user->isManager()) {
-            $employeeIds = User::where('department_id', $user->department_id)->where('role_id', User::ROLE_EMPLOYEE)->pluck('id');
-            $attendances = Attendance::with('employee')->whereIn('employee_id', $employeeIds)->whereYear('date', $year)->whereMonth('date', $month)->get();
-        } else {
-            $attendances = Attendance::where('employee_id', $user->id)->whereYear('date', $year)->whereMonth('date', $month)->get();
-        }
-        
-        $filename = "attendances_{$year}_{$month}.csv";
-        $handle = fopen('php://temp', 'w');
-        
-        fputcsv($handle, ['Employee', 'Date', 'Check In', 'Check Out', 'Hours Worked', 'Status']);
-        
-        foreach ($attendances as $attendance) {
-            fputcsv($handle, [
-                $attendance->employee->first_name . ' ' . $attendance->employee->last_name,
-                $attendance->date->format('d/m/Y'),
-                $attendance->getCheckInFormatted(),
-                $attendance->getCheckOutFormatted(),
-                $attendance->hours_worked ?? 0,
-                $attendance->status
-            ]);
-        }
-        
-        rewind($handle);
-        $csv = stream_get_contents($handle);
-        fclose($handle);
-        
-        return response($csv, 200)->header('Content-Type', 'text/csv')->header('Content-Disposition', "attachment; filename=\"$filename\"");
-    }
-
-    /**
-     * Get employees list based on user role.
-     */
     private function getEmployeesList()
     {
         $user = auth()->user();
@@ -284,9 +230,6 @@ class AttendanceController extends Controller
         return collect([$user]);
     }
 
-    /**
-     * Calculate statistics from attendances.
-     */
     private function calculateStats($attendances)
     {
         $total = $attendances->count();
@@ -309,24 +252,12 @@ class AttendanceController extends Controller
         ];
     }
 
-    /**
-     * Get months list.
-     */
     private function getMonthsList()
     {
         return [
-            1 => 'January',
-            2 => 'February',
-            3 => 'March',
-            4 => 'April',
-            5 => 'May',
-            6 => 'June',
-            7 => 'July',
-            8 => 'August',
-            9 => 'September',
-            10 => 'October',
-            11 => 'November',
-            12 => 'December'
+            1 => 'January', 2 => 'February', 3 => 'March', 4 => 'April',
+            5 => 'May', 6 => 'June', 7 => 'July', 8 => 'August',
+            9 => 'September', 10 => 'October', 11 => 'November', 12 => 'December'
         ];
     }
 }

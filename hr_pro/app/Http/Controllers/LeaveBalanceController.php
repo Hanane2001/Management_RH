@@ -29,9 +29,7 @@ class LeaveBalanceController extends Controller
         if (Gate::denies('create', LeaveBalance::class)) {
             abort(403);
         }
-        $employees = User::whereHas('role', function($q) {
-            $q->where('name', 'employ');
-        })->get();
+        $employees = User::where('role_id', User::ROLE_EMPLOYEE)->get();
         return view('leave_balances.create', compact('employees'));
     }
 
@@ -51,7 +49,7 @@ class LeaveBalanceController extends Controller
         ]);
         $exists = LeaveBalance::where('employee_id', $request->employee_id)->where('year', $request->year)->exists();
         if ($exists) {
-            return back()->with('error', 'Un solde existe déjà pour cette année ');
+            return back()->with('error', 'Balance already exists for this year');
         }
         $remaining_days = $request->total_days - $request->used_days;
         LeaveBalance::create([
@@ -61,7 +59,7 @@ class LeaveBalanceController extends Controller
             'used_days' => $request->used_days,
             'remaining_days' => $remaining_days
         ]);
-        return redirect()->route('leave-balances.index')->with('success', 'Solde créé avec succès');
+        return redirect()->route('leave-balances.index')->with('success', 'Leave balance created successfully');
     }
 
     /**
@@ -83,10 +81,7 @@ class LeaveBalanceController extends Controller
         if (Gate::denies('update', $leaveBalance)) {
             abort(403);
         }
-        
-        $employees = User::whereHas('role', function($q) {
-            $q->where('name', 'employ');
-        })->get();
+        $employees = User::where('role_id', User::ROLE_EMPLOYEE)->get();
         
         return view('leave_balances.edit', compact('leaveBalance', 'employees'));
     }
@@ -115,7 +110,7 @@ class LeaveBalanceController extends Controller
             'remaining_days' => $remaining_days
         ]);
         
-        return redirect()->route('leave-balances.index')->with('success', 'Solde mis à jour avec succès');
+        return redirect()->route('leave-balances.index')->with('success', 'Leave balance updated successfully');
     }
 
     /**
@@ -128,7 +123,7 @@ class LeaveBalanceController extends Controller
         }
         
         $leaveBalance->delete();
-        return redirect()->route('leave-balances.index')->with('success', 'Solde supprimé avec succès');
+        return redirect()->route('leave-balances.index')->with('success', 'Leave balance deleted successfully');
     }
 
     public function myBalance()
@@ -148,9 +143,7 @@ class LeaveBalanceController extends Controller
         
         $currentYear = date('Y');
         $defaultDays = 30;
-        $employees = User::whereHas('role', function($q) {
-            $q->where('name', 'employ');
-        })->get();
+        $employees = User::where('role_id', User::ROLE_EMPLOYEE)->get();
         
         $created = 0;
         $skipped = 0;
@@ -171,34 +164,7 @@ class LeaveBalanceController extends Controller
             }
         }
         
-        return redirect()->route('leave-balances.index')->with('success', "Soldes initialisés: $created créés, $skipped existants");
-    }
-    public function export()
-    {
-        if (Gate::denies('export', LeaveBalance::class)) {
-            abort(403);
-        }
-        
-        $balances = LeaveBalance::with('employee')->where('year', date('Y'))->get();
-        $filename = "soldes_conges_" . date('Y') . ".csv";
-        $handle = fopen('php://temp', 'w');
-        fputcsv($handle, ['Employé', 'Email', 'Département', 'Total', 'Utilisés', 'Restant', 'Utilisation']);
-        foreach ($balances as $balance) {
-            fputcsv($handle, [
-                $balance->employee->getFullName(),
-                $balance->employee->email,
-                $balance->employee->department->name ?? 'N/A',
-                $balance->total_days,
-                $balance->used_days,
-                $balance->remaining_days,
-                number_format($balance->getUsedPercentage(), 2) . '%'
-            ]);
-        }
-        
-        rewind($handle);
-        $csv = stream_get_contents($handle);
-        fclose($handle);
-        return response($csv, 200)->header('Content-Type', 'text/csv')->header('Content-Disposition', "attachment; filename=\"$filename\"");
+        return redirect()->route('leave-balances.index')->with('success', "Balances initialized: $created created, $skipped existing");
     }
 
     public function addDays(Request $request, LeaveBalance $leaveBalance)
@@ -216,7 +182,7 @@ class LeaveBalanceController extends Controller
             'remaining_days' => $leaveBalance->remaining_days + $request->days
         ]);
         
-        return back()->with('success', "{$request->days} jours ajoutés au solde");
+        return back()->with('success', "{$request->days} days added to balance");
     }
 
     public function statistics()
@@ -228,7 +194,7 @@ class LeaveBalanceController extends Controller
         $currentYear = date('Y');
         
         $stats = [
-            'total_employees' => User::whereHas('role', fn($q) => $q->where('name', 'employ'))->count(),
+            'total_employees' => User::where('role_id', User::ROLE_EMPLOYEE)->count(),
             'total_balances' => LeaveBalance::where('year', $currentYear)->count(),
             'total_days_allocated' => LeaveBalance::where('year', $currentYear)->sum('total_days'),
             'total_days_used' => LeaveBalance::where('year', $currentYear)->sum('used_days'),

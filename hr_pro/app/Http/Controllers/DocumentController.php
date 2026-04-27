@@ -65,7 +65,6 @@ class DocumentController extends Controller
         $file = $request->file('document');
         $originalName = $file->getClientOriginalName();
         $fileName = time() . '_' . preg_replace('/[^a-zA-Z0-9._-]/', '', $originalName);
-
         $path = $file->storeAs('documents', $fileName, 'public');
         
         Document::create([
@@ -157,8 +156,7 @@ class DocumentController extends Controller
         
         $document->update($data);
         
-        return redirect()->route('documents.index')
-            ->with('success', 'Document updated successfully');
+        return redirect()->route('documents.index')->with('success', 'Document updated successfully');
     }
 
     /**
