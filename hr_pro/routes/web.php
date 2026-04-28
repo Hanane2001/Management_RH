@@ -85,6 +85,7 @@ Route::middleware(['auth'])->group(function () {
     // Evaluations
     Route::prefix('evaluations')->name('evaluations.')->group(function () {
         Route::get('/', [EvaluationController::class, 'index'])->name('index');
+        Route::get('/create', [EvaluationController::class, 'create'])->name('create');
         Route::get('/statistics', [EvaluationController::class, 'statistics'])->name('statistics');
         Route::get('/{evaluation}', [EvaluationController::class, 'show'])->name('show');
     });
@@ -176,7 +177,6 @@ Route::middleware(['auth', 'admin'])->group(function () {
     
     // Evaluations
     Route::prefix('evaluations')->name('evaluations.')->group(function () {
-        Route::get('/create', [EvaluationController::class, 'create'])->name('create');
         Route::post('/', [EvaluationController::class, 'store'])->name('store');
         Route::get('/{evaluation}/edit', [EvaluationController::class, 'edit'])->name('edit');
         Route::put('/{evaluation}', [EvaluationController::class, 'update'])->name('update');
@@ -211,7 +211,6 @@ Route::middleware(['auth', 'manager'])->group(function () {
     
     // Evaluations
     Route::prefix('evaluations')->name('evaluations.')->group(function () {
-        Route::get('/create', [EvaluationController::class, 'create'])->name('create');
         Route::post('/', [EvaluationController::class, 'store'])->name('store');
         Route::get('/{evaluation}/edit', [EvaluationController::class, 'edit'])->name('edit');
         Route::put('/{evaluation}', [EvaluationController::class, 'update'])->name('update');

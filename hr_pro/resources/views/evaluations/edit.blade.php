@@ -3,72 +3,254 @@
 @section('title', 'Edit Evaluation')
 
 @section('content')
+<style>
+    .form-card {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid #E5E7EB;
+        overflow: hidden;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    .form-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid #E5E7EB;
+        background: white;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    
+    .form-header h3 {
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 1.25rem;
+        color: #1F2937;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .form-header h3 i {
+        color: #1D4ED8;
+    }
+    
+    .btn-back {
+        background: #F3F4F6;
+        color: #374151;
+        padding: 8px 16px;
+        border-radius: 10px;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-back:hover {
+        background: #E5E7EB;
+        color: #1F2937;
+    }
+    
+    .form-body {
+        padding: 24px;
+    }
+    
+    .form-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+    
+    .form-group {
+        margin-bottom: 0;
+    }
+    
+    .form-group-full {
+        grid-column: span 2;
+    }
+    
+    .form-label {
+        display: block;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+    
+    .form-label span {
+        color: #EF4444;
+    }
+    
+    .form-input, .form-select {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #E5E7EB;
+        border-radius: 10px;
+        font-family: 'Roboto', sans-serif;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        outline: none;
+        background: white;
+    }
+    
+    .form-input:focus, .form-select:focus {
+        border-color: #1D4ED8;
+        box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+    }
+    
+    .form-input.is-invalid, .form-select.is-invalid {
+        border-color: #EF4444;
+    }
+    
+    .form-textarea {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #E5E7EB;
+        border-radius: 10px;
+        font-family: 'Roboto', sans-serif;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        outline: none;
+        resize: vertical;
+    }
+    
+    .form-textarea:focus {
+        border-color: #1D4ED8;
+        box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.1);
+    }
+    
+    .invalid-feedback {
+        color: #EF4444;
+        font-family: 'Roboto', sans-serif;
+        font-size: 0.75rem;
+        margin-top: 5px;
+    }
+    
+    .btn-submit {
+        background: #1D4ED8;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 10px;
+        font-family: 'Inter', sans-serif;
+        font-weight: 600;
+        font-size: 0.9rem;
+        cursor: pointer;
+        transition: all 0.2s;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 10px;
+    }
+    
+    .btn-submit:hover {
+        background: #1E3A8A;
+        transform: translateY(-1px);
+    }
+    
+    @media (max-width: 768px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        
+        .form-group-full {
+            grid-column: span 1;
+        }
+        
+        .form-header {
+            padding: 16px 20px;
+        }
+        
+        .form-body {
+            padding: 20px;
+        }
+    }
+</style>
+
 <div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="card-title">Edit Performance Evaluation</h3>
-                    <a href="{{ route('evaluations.index') }}" class="btn btn-secondary float-end">Back</a>
+    <div class="form-card">
+        <div class="form-header">
+            <h3>
+                <i class="fas fa-edit"></i> Edit Performance Evaluation
+            </h3>
+            <a href="{{ route('evaluations.index') }}" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Back
+            </a>
+        </div>
+        <div class="form-body">
+            <form method="POST" action="{{ route('evaluations.update', $evaluation) }}">
+                @csrf
+                @method('PUT')
+                
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label class="form-label">Employee <span>*</span></label>
+                        <select class="form-select @error('employee_id') is-invalid @enderror" name="employee_id" required>
+                            <option value="">Select employee...</option>
+                            @foreach($employees as $employee)
+                            <option value="{{ $employee->id }}" {{ old('employee_id', $evaluation->employee_id) == $employee->id ? 'selected' : '' }}>
+                                {{ $employee->getFullName() }} ({{ $employee->department->name ?? 'No Department' }})
+                            </option>
+                            @endforeach
+                        </select>
+                        @error('employee_id')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    
+                    <div class="form-group">
+                        <label class="form-label">Evaluation Date <span>*</span></label>
+                        <input type="date" class="form-input @error('evaluation_date') is-invalid @enderror" 
+                               name="evaluation_date" value="{{ old('evaluation_date', $evaluation->evaluation_date->format('Y-m-d')) }}" required>
+                        @error('evaluation_date')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    
+                    <div class="form-group-full">
+                        <label class="form-label">Evaluation Period <span>*</span></label>
+                        <input type="text" class="form-input @error('period') is-invalid @enderror" 
+                               name="period" value="{{ old('period', $evaluation->period) }}" required>
+                        @error('period')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    
+                    <div class="form-group-full">
+                        <label class="form-label">Overall Score (%) <span>*</span></label>
+                        <input type="number" step="1" min="0" max="100" class="form-input @error('overall_score') is-invalid @enderror" 
+                               name="overall_score" value="{{ old('overall_score', $evaluation->overall_score) }}" required>
+                        @error('overall_score')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
+                    
+                    <div class="form-group-full">
+                        <label class="form-label">Comments</label>
+                        <textarea class="form-textarea @error('comments') is-invalid @enderror" 
+                                  name="comments" rows="4">{{ old('comments', $evaluation->comments) }}</textarea>
+                        @error('comments')
+                            <div class="invalid-feedback">{{ $message }}</div>
+                        @enderror
+                    </div>
                 </div>
-                <div class="card-body">
-                    <form method="POST" action="{{ route('evaluations.update', $evaluation) }}">
-                        @csrf
-                        @method('PUT')
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
-                                <label for="employee_id" class="form-label">Employee *</label>
-                                <select class="form-control @error('employee_id') is-invalid @enderror" id="employee_id" name="employee_id" required>
-                                    <option value="">Select Employee</option>
-                                    @foreach($employees as $employee)
-                                    <option value="{{ $employee->id }}" {{ old('employee_id', $evaluation->employee_id) == $employee->id ? 'selected' : '' }}>
-                                        {{ $employee->getFullName() }} ({{ $employee->department->name ?? 'N/A' }})
-                                    </option>
-                                    @endforeach
-                                </select>
-                                @error('employee_id')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                            <div class="col-md-6 mb-3">
-                                <label for="evaluation_date" class="form-label">Evaluation Date *</label>
-                                <input type="date" class="form-control @error('evaluation_date') is-invalid @enderror" 
-                                       id="evaluation_date" name="evaluation_date" value="{{ old('evaluation_date', $evaluation->evaluation_date->format('Y-m-d')) }}" required>
-                                @error('evaluation_date')
-                                    <div class="invalid-feedback">{{ $message }}</div>
-                                @enderror
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label for="period" class="form-label">Evaluation Period *</label>
-                            <input type="text" class="form-control @error('period') is-invalid @enderror" 
-                                   id="period" name="period" value="{{ old('period', $evaluation->period) }}" required>
-                            @error('period')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="overall_score" class="form-label">Overall Score (%) *</label>
-                            <input type="number" step="1" min="0" max="100" class="form-control @error('overall_score') is-invalid @enderror" 
-                                   id="overall_score" name="overall_score" value="{{ old('overall_score', $evaluation->overall_score) }}" required>
-                            @error('overall_score')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="mb-3">
-                            <label for="comments" class="form-label">Comments</label>
-                            <textarea class="form-control @error('comments') is-invalid @enderror" 
-                                      id="comments" name="comments" rows="5">{{ old('comments', $evaluation->comments) }}</textarea>
-                            @error('comments')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-                        <div class="d-grid">
-                            <button type="submit" class="btn btn-primary">Update Evaluation</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+                
+                <button type="submit" class="btn-submit">
+                    <i class="fas fa-save"></i> Update Evaluation
+                </button>
+            </form>
         </div>
     </div>
 </div>
