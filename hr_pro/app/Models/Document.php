@@ -51,19 +51,4 @@ class Document extends Model
         
         return $badges[$this->type] ?? '<span class="badge bg-secondary">Autre</span>';
     }
-
-    // public function getIcon()
-    // {
-    //     $icons = [
-    //         'pdf' => '📄',
-    //         'doc' => '📝',
-    //         'docx' => '📝',
-    //         'jpg' => '🖼️',
-    //         'png' => '🖼️',
-    //         'default' => '📁'
-    //     ];
-        
-    //     $extension = pathinfo($this->file_name, PATHINFO_EXTENSION);
-    //     return $icons[$extension] ?? $icons['default'];
-    // }
 }

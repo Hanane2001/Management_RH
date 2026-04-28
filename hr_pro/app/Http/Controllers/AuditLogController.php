@@ -174,4 +174,14 @@ class AuditLogController extends Controller
     {
         //
     }
+
+    public function getUnreadCount()
+    {
+        if (!auth()->user()->isAdmin()) {
+            return response()->json(['unread_count' => 0]);
+        }
+        
+        $count = AuditLog::whereNull('read_at')->count();
+        return response()->json(['unread_count' => $count]);
+    }
 }
