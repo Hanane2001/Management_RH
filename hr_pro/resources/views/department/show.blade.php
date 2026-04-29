@@ -255,9 +255,11 @@
                                         </span>
                                     </a></td>
                                     <td>
+                                        @can('viewAnyE', App\Models\User::class)
                                         <a href="{{ route('employees.show', $employee->id) }}" class="btn-action btn-view" style="padding: 4px 8px;" title="View">
                                             <i class="fas fa-eye"></i>
                                         </a>
+                                        @endcan
                                     </a>
                                 </tr>
                                 @empty

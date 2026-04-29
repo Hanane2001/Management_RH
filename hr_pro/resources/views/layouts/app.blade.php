@@ -5,11 +5,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>@yield('title', 'HR Management System')</title>
-    
     <!-- Fonts -->
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800|roboto:400,500,700" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    
+    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> -->
     <style>
         * {
             margin: 0;
@@ -57,6 +57,22 @@
         
         .sidebar-nav {
             padding: 20px 0;
+            overflow-y: auto;
+            max-height: calc(100vh - 120px);
+        }
+        
+        .nav-section {
+            margin-bottom: 20px;
+        }
+        
+        .nav-section-title {
+            padding: 8px 24px;
+            color: rgba(255,255,255,0.5);
+            font-family: 'Inter', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
         
         .nav-link {
@@ -202,6 +218,20 @@
                 display: none;
             }
         }
+        
+        /* Custom scrollbar for sidebar */
+        .sidebar-nav::-webkit-scrollbar {
+            width: 4px;
+        }
+        
+        .sidebar-nav::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.1);
+        }
+        
+        .sidebar-nav::-webkit-scrollbar-thumb {
+            background: rgba(255,255,255,0.3);
+            border-radius: 4px;
+        }
     </style>
     @stack('styles')
 </head>
@@ -210,7 +240,6 @@
         <i class="fas fa-bars"></i>
     </button>
     
-    <!-- Sidebar -->
     <div class="sidebar" id="sidebar">
         <div class="sidebar-brand">
             <h3>HR System</h3>
@@ -218,53 +247,78 @@
         </div>
         
         <div class="sidebar-nav">
-            <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
-                <i class="fas fa-tachometer-alt"></i> Dashboard
-            </a>
-            <a class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}" href="{{ route('profile.show') }}">
-                <i class="fas fa-user"></i> My Profile
-            </a>
-            @can('viewAny', App\Models\User::class)
-            <a class="nav-link {{ request()->routeIs('employees.*') ? 'active' : '' }}" href="{{ route('employees.index') }}">
-                <i class="fas fa-users"></i> Employees
-            </a>
-            @endcan
-            <a class="nav-link {{ request()->routeIs('departments.*') ? 'active' : '' }}" href="{{ route('departments.index') }}">
-                <i class="fas fa-building"></i> Departments
-            </a>
-            <a class="nav-link {{ request()->routeIs('contracts.*') ? 'active' : '' }}" href="{{ route('contracts.index') }}">
-                <i class="fas fa-file-signature"></i> Contracts
-            </a>
-            <a class="nav-link {{ request()->routeIs('leaves.*') ? 'active' : '' }}" href="{{ route('leaves.index') }}">
-                <i class="fas fa-calendar-alt"></i> Leaves
-            </a>
-            <a class="nav-link {{ request()->routeIs('evaluations.*') ? 'active' : '' }}" href="{{ route('evaluations.index') }}">
-                <i class="fas fa-star"></i> Evaluations
-            </a>
-            <a class="nav-link {{ request()->routeIs('documents.*') ? 'active' : '' }}" href="{{ route('documents.index') }}">
-                <i class="fas fa-folder"></i> Documents
-            </a>
-            <a class="nav-link {{ request()->routeIs('attendances.*') ? 'active' : '' }}" href="{{ route('attendances.index') }}">
-                <i class="fas fa-clock"></i> Attendance
-            </a>
-            <a class="nav-link {{ request()->routeIs('payrolls.*') ? 'active' : '' }}" href="{{ route('payrolls.index') }}">
-                <i class="fas fa-money-bill"></i> Payrolls
-            </a>
-            <a class="nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}" href="{{ route('notifications.index') }}">
-                <i class="fas fa-bell"></i> Notifications
-                @php
-                    $unreadCount = auth()->user()->unreadNotifications()->count();
-                @endphp
-                @if($unreadCount > 0)
-                    <span class="badge-notification">{{ $unreadCount }}</span>
-                @endif
-            </a>
-            @can('viewAny', App\Models\AuditLog::class)
-            <a class="nav-link {{ request()->routeIs('audit-logs.*') ? 'active' : '' }}" href="{{ route('audit-logs.index') }}">
-                <i class="fas fa-history"></i> Audit Logs
-            </a>
-            @endcan
-            <div style="margin-top: 20px;">
+            <div class="nav-section">
+                <div class="nav-section-title">MAIN</div>
+                <a class="nav-link {{ request()->routeIs('dashboard') ? 'active' : '' }}" href="{{ route('dashboard') }}">
+                    <i class="fas fa-tachometer-alt"></i> Dashboard
+                </a>
+                <a class="nav-link {{ request()->routeIs('profile.*') ? 'active' : '' }}" href="{{ route('profile.show') }}">
+                    <i class="fas fa-user"></i> My Profile
+                </a>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">HR MANAGEMENT</div>
+                @can('viewAnyE', App\Models\User::class)
+                <a class="nav-link {{ request()->routeIs('employees.*') ? 'active' : '' }}" href="{{ route('employees.index') }}">
+                    <i class="fas fa-users"></i> Employees
+                </a>
+                @endcan
+                <a class="nav-link {{ request()->routeIs('departments.*') ? 'active' : '' }}" href="{{ route('departments.index') }}">
+                    <i class="fas fa-building"></i> Departments
+                </a>
+                <a class="nav-link {{ request()->routeIs('contracts.*') ? 'active' : '' }}" href="{{ route('contracts.index') }}">
+                    <i class="fas fa-file-signature"></i> Contracts
+                </a>
+                <a class="nav-link {{ request()->routeIs('leaves.*') ? 'active' : '' }}" href="{{ route('leaves.index') }}">
+                    <i class="fas fa-calendar-alt"></i> Leaves
+                </a>
+                @can('viewAny', App\Models\LeaveBalance::class)
+                <a class="nav-link {{ request()->routeIs('leave-balances.*') ? 'active' : '' }}" href="{{ route('leave-balances.index') }}">
+                    <i class="fas fa-balance-scale"></i> Leave Balances
+                </a>
+                @endcan
+                <a class="nav-link {{ request()->routeIs('evaluations.*') ? 'active' : '' }}" href="{{ route('evaluations.index') }}">
+                    <i class="fas fa-star"></i> Evaluations
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-section-title">OPERATIONS</div>
+                <a class="nav-link {{ request()->routeIs('attendances.*') ? 'active' : '' }}" href="{{ route('attendances.index') }}">
+                    <i class="fas fa-clock"></i> Attendance
+                </a>
+                <a class="nav-link {{ request()->routeIs('payrolls.*') ? 'active' : '' }}" href="{{ route('payrolls.index') }}">
+                    <i class="fas fa-money-bill"></i> Payrolls
+                </a>
+                <a class="nav-link {{ request()->routeIs('documents.*') ? 'active' : '' }}" href="{{ route('documents.index') }}">
+                    <i class="fas fa-folder"></i> Documents
+                </a>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">COMMUNICATION</div>
+                <a class="nav-link {{ request()->routeIs('notifications.*') ? 'active' : '' }}" href="{{ route('notifications.index') }}">
+                    <i class="fas fa-bell"></i> Notifications
+                    @php
+                        $unreadCount = auth()->user()->unreadNotifications()->count();
+                    @endphp
+                    @if($unreadCount > 0)
+                        <span class="badge-notification">{{ $unreadCount }}</span>
+                    @endif
+                </a>
+            </div>
+            
+            <div class="nav-section">
+                <div class="nav-section-title">SYSTEM</div>
+                @can('viewAny', App\Models\AuditLog::class)
+                <a class="nav-link {{ request()->routeIs('audit-logs.*') ? 'active' : '' }}" href="{{ route('audit-logs.index') }}">
+                    <i class="fas fa-history"></i> Audit Logs
+                </a>
+                @endcan
+            </div>
+            
+            <div style="margin-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px;">
                 <form method="POST" action="{{ route('logout') }}">
                     @csrf
                     <button type="submit" class="nav-link text-danger" style="width: 100%; text-align: left; background: none; border: none; cursor: pointer;">
@@ -279,6 +333,7 @@
     <main class="main-content">
         @if(session('success'))
             <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fas fa-check-circle" style="margin-right: 10px;"></i>
                 {{ session('success') }}
                 <button type="button" class="btn-close" data-dismiss="alert" aria-label="Close">&times;</button>
             </div>
@@ -286,7 +341,16 @@
         
         @if(session('error'))
             <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fas fa-exclamation-circle" style="margin-right: 10px;"></i>
                 {{ session('error') }}
+                <button type="button" class="btn-close" data-dismiss="alert" aria-label="Close">&times;</button>
+            </div>
+        @endif
+        
+        @if(session('info'))
+            <div class="alert alert-info alert-dismissible fade show" role="alert">
+                <i class="fas fa-info-circle" style="margin-right: 10px;"></i>
+                {{ session('info') }}
                 <button type="button" class="btn-close" data-dismiss="alert" aria-label="Close">&times;</button>
             </div>
         @endif
@@ -304,11 +368,29 @@
             });
         }
 
+        document.addEventListener('click', function(event) {
+            const isMobile = window.innerWidth <= 768;
+            if (isMobile && sidebar.classList.contains('active')) {
+                if (!sidebar.contains(event.target) && !menuToggle.contains(event.target)) {
+                    sidebar.classList.remove('active');
+                }
+            }
+        });
+
         document.querySelectorAll('.btn-close').forEach(button => {
             button.addEventListener('click', function() {
                 this.closest('.alert').style.display = 'none';
             });
         });
+        
+        setTimeout(function() {
+            document.querySelectorAll('.alert').forEach(alert => {
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.style.display = 'none';
+                }, 300);
+            });
+        }, 5000);
     </script>
     @stack('scripts')
 </body>

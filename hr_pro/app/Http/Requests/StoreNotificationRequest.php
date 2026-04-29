@@ -33,9 +33,9 @@ class StoreNotificationRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'user_id.required' => 'Veuillez sélectionner un utilisateur',
-            'title.required' => 'Le titre est requis',
-            'message.required' => 'Le message est requis',
+            'user_id.required' => 'Please select a user',
+            'title.required' => 'The title is required',
+            'message.required' => 'The message is required',
         ];
     }
 }

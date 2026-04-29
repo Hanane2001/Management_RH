@@ -19,6 +19,14 @@ class UserPolicy
         return $user->isAdmin() || $user->isManager();
     }
 
+    public function viewAnyE(User $user): bool
+    {
+        if ($user->isAdmin()) {
+            return true;
+        }
+        return false;
+    }
+
     public function view(User $user, User $model): bool
     {
         if ($user->isAdmin()) return true;

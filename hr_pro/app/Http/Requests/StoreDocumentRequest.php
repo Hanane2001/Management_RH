@@ -41,11 +41,11 @@ class StoreDocumentRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'employee_id.required' => 'Veuillez sélectionner un employé',
-            'type.required' => 'Veuillez sélectionner le type de document',
-            'document.required' => 'Veuillez sélectionner un fichier',
-            'document.mimes' => 'Le fichier doit être de type: pdf, doc, docx, jpg, png',
-            'document.max' => 'Le fichier ne doit pas dépasser 5MB',
+            'employee_id.required' => 'Please select an employee',
+            'type.required' => 'Please select the document type',
+            'document.required' => 'Please select a file',
+            'document.mimes' => 'The file must be of type: pdf, doc, docx, jpg, png',
+            'document.max' => 'The file must not exceed 5MB',
         ];
     }
 }

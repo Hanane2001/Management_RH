@@ -34,12 +34,12 @@ class StoreEvaluationRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'employee_id.required' => 'Veuillez sélectionner un employé',
-            'evaluation_date.required' => 'La date d\'évaluation est requise',
-            'period.required' => 'La période est requise',
-            'overall_score.required' => 'Le score est requis',
-            'overall_score.min' => 'Le score doit être entre 0 et 100',
-            'overall_score.max' => 'Le score doit être entre 0 et 100',
+            'employee_id.required' => 'Please select an employee',
+            'evaluation_date.required' => 'The evaluation date is required',
+            'period.required' => 'The period is required',
+            'overall_score.required' => 'The score is required',
+            'overall_score.min' => 'The score must be between 0 and 100',
+            'overall_score.max' => 'The score must be between 0 and 100',
         ];
     }
 }

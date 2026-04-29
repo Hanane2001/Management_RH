@@ -38,11 +38,11 @@ class StorePayrollRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'employee_id.required' => 'Veuillez sélectionner un employé',
-            'month.required' => 'Le mois est requis',
-            'year.required' => 'L\'année est requise',
-            'base_salary.required' => 'Le salaire de base est requis',
-            'base_salary.min' => 'Le salaire de base doit être positif',
+            'employee_id.required' => 'Please select an employee',
+            'month.required' => 'The month is required',
+            'year.required' => 'The year is required',
+            'base_salary.required' => 'The base salary is required',
+            'base_salary.min' => 'The base salary must be positive',
         ];
     }
 }

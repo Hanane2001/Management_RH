@@ -35,10 +35,10 @@ class StoreAttendanceRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'employee_id.required' => 'Veuillez sélectionner un employé',
-            'date.required' => 'La date est requise',
-            'status.required' => 'Le statut est requis',
-            'check_out.after' => 'L\'heure de départ doit être après l\'heure d\'arrivée',
+            'employee_id.required' => 'Please select an employee',
+            'date.required' => 'The date is requirede',
+            'status.required' => 'The status is required',
+            'check_out.after' => 'The check-out time must be after the check-in time',
         ];
     }
 }

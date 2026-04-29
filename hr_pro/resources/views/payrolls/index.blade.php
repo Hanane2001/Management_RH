@@ -574,3 +574,19 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Initialiser le modal manuellement pour éviter qu'il ne s'ouvre automatiquement
+        var modalElement = document.getElementById('generateAllModal');
+        if (modalElement) {
+            // S'assurer que le modal est fermé au chargement
+            var modal = bootstrap.Modal.getInstance(modalElement);
+            if (modal) {
+                modal.hide();
+            }
+        }
+    });
+</script>
+@endpush
