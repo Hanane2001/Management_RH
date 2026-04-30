@@ -26,6 +26,7 @@ use App\Policies\AttendancePolicy;
 use App\Policies\PayrollPolicy;
 use App\Policies\NotificationPolicy;
 use App\Policies\AuditLogPolicy;
+use Illuminate\Pagination\Paginator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -68,5 +69,7 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('manage-payrolls', fn(User $user) => $user->isAdmin() || $user->isManager());
         Gate::define('manage-evaluations', fn(User $user) => $user->isManager() || $user->isAdmin());
         Gate::define('manage-documents', fn(User $user) => $user->isAdmin() || $user->isManager() || $user->isEmployee());
+
+        Paginator::useBootstrapFive();
     }
 }

@@ -292,7 +292,7 @@
                                 @endcan
                                 @can('delete', $evaluation)
                                 <form method="POST" action="{{ route('evaluations.destroy', $evaluation) }}" class="d-inline" 
-                                      onsubmit="return confirm('Are you sure? This action cannot be undone.')">
+                                    onsubmit="return confirm('Are you sure? This action cannot be undone.')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="btn-action btn-delete" title="Delete">
@@ -301,7 +301,7 @@
                                 </form>
                                 @endcan
                             </div>
-                        </a>
+                        </td>
                     </tr>
                     @empty
                     <tr>

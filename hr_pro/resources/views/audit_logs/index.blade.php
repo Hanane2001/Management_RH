@@ -271,9 +271,88 @@
         background: #DBEAFE;
     }
     
+    /* ========== PAGINATION STYLES ========== */
     .pagination-container {
         padding: 16px 20px;
         border-top: 1px solid #E5E7EB;
+    }
+    
+    .pagination {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 5px;
+        flex-wrap: wrap;
+        margin: 0;
+        padding: 0;
+        list-style: none;
+    }
+
+    .pagination-container nav {
+        display: flex;
+        justify-content: center;
+    }
+
+    .pagination-container nav > div:first-child {
+        display: flex;
+        justify-content: center;
+        width: 100%;
+    }
+    
+    .pagination li {
+        display: inline-block;
+        margin: 0 2px;
+    }
+    
+    .pagination a,
+    .pagination span {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        height: 36px;
+        padding: 0 10px;
+        border-radius: 8px;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.2s;
+        background: white;
+        color: #374151;
+        border: 1px solid #E5E7EB;
+    }
+    
+    .pagination a:hover {
+        background: #EFF6FF;
+        border-color: #1D4ED8;
+        color: #1D4ED8;
+    }
+    
+    .pagination .active span {
+        background: #1D4ED8;
+        border-color: #1D4ED8;
+        color: white;
+    }
+    
+    .pagination .disabled span {
+        background: #F9FAFB;
+        border-color: #E5E7EB;
+        color: #9CA3AF;
+        cursor: not-allowed;
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: #9CA3AF;
+    }
+    
+    .empty-state i {
+        font-size: 3rem;
+        margin-bottom: 15px;
+        display: block;
     }
     
     @media (max-width: 768px) {
@@ -289,6 +368,14 @@
         .table-modern thead th,
         .table-modern tbody td {
             padding: 8px 12px;
+        }
+        
+        .pagination a,
+        .pagination span {
+            min-width: 32px;
+            height: 32px;
+            font-size: 0.75rem;
+            padding: 0 6px;
         }
     }
 </style>
@@ -490,20 +577,20 @@
     </div>
 </div>
 
-<div class="modal fade" id="cleanModal" tabindex="-1">
+<div class="modal fade" id="cleanModal" tabindex="-1" aria-labelledby="cleanModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content-custom" style="background: white; border-radius: 20px; overflow: hidden;">
-            <div class="modal-header-custom" style="padding: 20px 24px; border-bottom: 1px solid #E5E7EB; background: #F9FAFB; display: flex; justify-content: space-between; align-items: center;">
-                <h5 style="font-family: 'Inter', sans-serif; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px;">
+        <div class="modal-content" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-header" style="padding: 20px 24px; border-bottom: 1px solid #E5E7EB; background: #F9FAFB;">
+                <h5 class="modal-title" id="cleanModalLabel" style="font-family: 'Inter', sans-serif; font-weight: 600; margin: 0; display: flex; align-items: center; gap: 8px;">
                     <i class="fas fa-trash-alt" style="color: #DC2626;"></i> Clean Old Audit Logs
                 </h5>
-                <button type="button" class="btn-close-custom" data-bs-dismiss="modal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer;">&times;</button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <form method="POST" action="{{ route('audit-logs.clean') }}">
+            <form method="POST" action="{{ route('audit-logs.clean') }}" id="cleanLogsForm">
                 @csrf
                 @method('DELETE')
-                <div class="modal-body-custom" style="padding: 24px;">
-                    <div style="margin-bottom: 20px;">
+                <div class="modal-body" style="padding: 24px;">
+                    <div class="mb-3">
                         <label style="display: block; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 6px;">Delete logs older than (days)</label>
                         <input type="number" name="days" class="filter-input" style="width: 100%;" min="1" max="365" placeholder="e.g., 90" required>
                         <small class="text-muted" style="font-family: 'Roboto', sans-serif; font-size: 0.7rem;">Recommended: 90 days</small>
@@ -515,7 +602,7 @@
                         </span>
                     </div>
                 </div>
-                <div class="modal-footer-custom" style="padding: 16px 24px; border-top: 1px solid #E5E7EB; background: #F9FAFB; display: flex; gap: 10px; justify-content: flex-end;">
+                <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #E5E7EB; background: #F9FAFB;">
                     <button type="button" class="btn-cancel" data-bs-dismiss="modal" style="background: #F3F4F6; color: #374151; padding: 8px 20px; border-radius: 10px; border: none; cursor: pointer; font-family: 'Inter', sans-serif;">Cancel</button>
                     <button type="submit" class="btn-danger" style="background: #DC2626; color: white; padding: 8px 20px; border-radius: 10px; border: none; cursor: pointer; display: inline-flex; align-items: center; gap: 8px;">
                         <i class="fas fa-trash"></i> Delete Logs

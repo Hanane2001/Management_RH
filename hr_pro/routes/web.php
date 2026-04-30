@@ -202,13 +202,6 @@ Route::middleware(['auth', 'manager'])->group(function () {
         Route::get('/balances/all', [LeaveController::class, 'allBalances'])->name('all-balances');
     });
     
-    // Leave Balances
-    Route::prefix('leave-balances')->name('leave-balances.')->group(function () {
-        Route::get('/', [LeaveBalanceController::class, 'index'])->name('index');
-        Route::get('/{leaveBalance}', [LeaveBalanceController::class, 'show'])->name('show');
-        Route::get('/statistics', [LeaveBalanceController::class, 'statistics'])->name('statistics');
-    });
-    
     // Evaluations
     Route::prefix('evaluations')->name('evaluations.')->group(function () {
         Route::post('/', [EvaluationController::class, 'store'])->name('store');
@@ -234,5 +227,8 @@ Route::middleware(['auth'])->prefix('api')->name('api.')->group(function () {
 
 // Fallback Route (404)
 Route::fallback(function () {
-    return redirect('/dashboard')->with('error', 'Page not found');
+    if (auth()->check()) {
+        return redirect('/dashboard')->with('error', 'Page not found');
+    }
+    return redirect('/login');
 });

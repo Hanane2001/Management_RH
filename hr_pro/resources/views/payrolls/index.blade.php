@@ -530,21 +530,21 @@
     </div>
 </div>
 
-<div class="modal fade" id="generateAllModal" tabindex="-1">
+<div class="modal fade" id="generateAllModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-custom">
-            <div class="modal-header-custom">
-                <h5>
-                    <i class="fas fa-sync-alt"></i> Generate Payroll for All Employees
+        <div class="modal-content" style="border-radius: 20px; overflow: hidden;">
+            <div class="modal-header" style="padding: 20px 24px; border-bottom: 1px solid #E5E7EB; background: #F9FAFB;">
+                <h5 class="modal-title" style="font-family: 'Inter', sans-serif; font-weight: 600;">
+                    <i class="fas fa-sync-alt" style="color: #F59E0B;"></i> Generate Payroll for All Employees
                 </h5>
-                <button type="button" class="btn-close-custom" data-bs-dismiss="modal">&times;</button>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <form method="POST" action="{{ route('payrolls.generate-all') }}">
                 @csrf
-                <div class="modal-body-custom">
+                <div class="modal-body" style="padding: 24px;">
                     <div style="margin-bottom: 20px;">
                         <label style="display: block; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 6px;">Month</label>
-                        <select name="month" class="filter-select" style="width: 100%;" required>
+                        <select name="month" class="form-select" style="width: 100%; padding: 10px; border: 1px solid #E5E7EB; border-radius: 10px;" required>
                             @foreach($months as $key => $monthName)
                             <option value="{{ $key }}" {{ $key == $month ? 'selected' : '' }}>{{ $monthName }}</option>
                             @endforeach
@@ -552,20 +552,22 @@
                     </div>
                     <div style="margin-bottom: 20px;">
                         <label style="display: block; font-family: 'Inter', sans-serif; font-size: 0.85rem; font-weight: 500; color: #374151; margin-bottom: 6px;">Year</label>
-                        <select name="year" class="filter-select" style="width: 100%;" required>
+                        <select name="year" class="form-select" style="width: 100%; padding: 10px; border: 1px solid #E5E7EB; border-radius: 10px;" required>
                             @foreach($years as $yearOption)
                             <option value="{{ $yearOption }}" {{ $yearOption == $year ? 'selected' : '' }}>{{ $yearOption }}</option>
                             @endforeach
                         </select>
                     </div>
-                    <div class="alert-warning-custom">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <span>This will generate payroll for all employees with active contracts. Existing payroll records will be skipped.</span>
+                    <div class="alert alert-warning" style="background: #FEF3C7; padding: 12px 16px; border-radius: 12px; display: flex; gap: 10px; align-items: center;">
+                        <i class="fas fa-exclamation-triangle" style="color: #D97706;"></i>
+                        <span style="font-family: 'Roboto', sans-serif; font-size: 0.8rem; color: #92400E;">
+                            This will generate payroll for all employees with active contracts. Existing payroll records will be skipped.
+                        </span>
                     </div>
                 </div>
-                <div class="modal-footer-custom">
-                    <button type="button" class="btn-cancel" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn-generate">
+                <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid #E5E7EB; background: #F9FAFB;">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" style="background: #F3F4F6; color: #374151; padding: 8px 20px; border-radius: 10px; border: none;">Cancel</button>
+                    <button type="submit" class="btn btn-warning" style="background: #F59E0B; color: white; padding: 8px 20px; border-radius: 10px; border: none;">
                         <i class="fas fa-sync-alt"></i> Generate All
                     </button>
                 </div>
@@ -578,14 +580,9 @@
 @push('scripts')
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Initialiser le modal manuellement pour éviter qu'il ne s'ouvre automatiquement
         var modalElement = document.getElementById('generateAllModal');
         if (modalElement) {
-            // S'assurer que le modal est fermé au chargement
-            var modal = bootstrap.Modal.getInstance(modalElement);
-            if (modal) {
-                modal.hide();
-            }
+            var modal = bootstrap.Modal.getOrCreateInstance(modalElement);
         }
     });
 </script>

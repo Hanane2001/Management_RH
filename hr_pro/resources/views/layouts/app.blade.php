@@ -4,12 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>@yield('title', 'HR Management System')</title>
+    <title>@yield('title', 'HR_PRO')</title>
     <!-- Fonts -->
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800|roboto:400,500,700" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script> -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -273,10 +272,15 @@
                 <a class="nav-link {{ request()->routeIs('leaves.*') ? 'active' : '' }}" href="{{ route('leaves.index') }}">
                     <i class="fas fa-calendar-alt"></i> Leaves
                 </a>
-                @can('viewAny', App\Models\LeaveBalance::class)
-                <a class="nav-link {{ request()->routeIs('leave-balances.*') ? 'active' : '' }}" href="{{ route('leave-balances.index') }}">
-                    <i class="fas fa-balance-scale"></i> Leave Balances
+                <a class="nav-link {{ request()->routeIs('leave-balances.my') ? 'active' : '' }}" href="{{ route('leave-balances.my') }}">
+                    <i class="fas fa-chart-line"></i> My Leave Balance
                 </a>
+                @can('viewAny', App\Models\LeaveBalance::class)
+                    @if(auth()->user()->isAdmin())
+                        <a class="nav-link {{ request()->routeIs('leave-balances.index') ? 'active' : '' }}" href="{{ route('leave-balances.index') }}">
+                            <i class="fas fa-balance-scale"></i> All Leave Balances
+                        </a>
+                    @endif
                 @endcan
                 <a class="nav-link {{ request()->routeIs('evaluations.*') ? 'active' : '' }}" href="{{ route('evaluations.index') }}">
                     <i class="fas fa-star"></i> Evaluations
@@ -357,7 +361,7 @@
         
         @yield('content')
     </main>
-    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const menuToggle = document.getElementById('menuToggle');
         const sidebar = document.getElementById('sidebar');

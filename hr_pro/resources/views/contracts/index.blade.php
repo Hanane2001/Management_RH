@@ -242,7 +242,6 @@
                             <a href="{{ route('employees.show', $contract->employee_id) }}" class="employee-link">
                                 {{ $contract->employee->getFullName() }}
                             </a>
-                        </a>
                         <td style="font-weight: 500;">{{ $contract->position }}</a>
                         <td>
                             <span class="badge-type 

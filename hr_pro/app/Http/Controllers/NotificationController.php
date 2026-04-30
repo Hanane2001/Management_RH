@@ -254,4 +254,11 @@ class NotificationController extends Controller
             'sent_at' => Carbon::now()
         ]);
     }
+
+    public function getRecent()
+    {
+        $user = auth()->user();
+        $notifications = Notification::where('user_id', $user->id)->latest()->limit(10)->get();
+        return response()->json($notifications);
+    }
 }

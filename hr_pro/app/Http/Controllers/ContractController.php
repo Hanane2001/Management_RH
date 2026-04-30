@@ -18,8 +18,11 @@ class ContractController extends Controller
     {
         $user = auth()->user();
 
-        if (Gate::allows('isAdmin') || Gate::allows('isManager')) {
+         if ($user->isAdmin()) {
             $contracts = Contract::with('employee')->get();
+        } elseif ($user->isManager()) {
+            $employeeIds = User::where('department_id', $user->department_id)->where('role_id', User::ROLE_EMPLOYEE)->pluck('id');
+            $contracts = Contract::with('employee')->whereIn('employee_id', $employeeIds)->get();
         } else {
             $contracts = Contract::with('employee')->where('employee_id', $user->id)->get();
         }

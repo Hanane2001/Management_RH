@@ -4,8 +4,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-use App\Http\Requests\UpdateProfileRequest;
-use App\Http\Requests\UpdatePasswordRequest;
+// use App\Http\Requests\UpdateProfileRequest;
+// use App\Http\Requests\UpdatePasswordRequest;
 use App\Services\AuditLogService;
 
 class ProfileController extends Controller

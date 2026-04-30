@@ -33,15 +33,13 @@ class Attendance extends Model
     public function calculateHoursWorked()
     {
         if ($this->check_in && $this->check_out) {
-            $checkIn = new \DateTime($this->check_in);
-            $checkOut = new \DateTime($this->check_out);
-            $diff = $checkOut->diff($checkIn);
-            $hours = $diff->h + ($diff->i / 60);
+            $checkIn = Carbon::parse($this->check_in);
+            $checkOut = Carbon::parse($this->check_out);
+            $hours = $checkOut->diffInHours($checkIn) + ($checkOut->diffInMinutes($checkIn) % 60) / 60;
             $this->hours_worked = round($hours, 2);
             $this->save();
-            return $this->hours_worked;
         }
-        return 0;
+        return $this->hours_worked ?? 0;
     }
 
     public function getStatusBadge()

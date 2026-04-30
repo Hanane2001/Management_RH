@@ -193,39 +193,57 @@ class PayrollController extends Controller
 
     public function generateAll(Request $request)
     {
-        if (!auth()->user()->isAdmin()) {
-            abort(403);
+        if (!auth()->user()->isAdmin() && !auth()->user()->isManager()) {
+            abort(403, 'Only administrators and managers can generate payrolls');
         }
+        
+        $request->validate([
+            'month' => 'required|integer|min:1|max:12',
+            'year' => 'required|integer|min:2000|max:2100'
+        ]);
         
         $month = $request->month;
         $year = $request->year;
         
-        $employees = User::where('role_id', User::ROLE_EMPLOYEE)->get();
+        if (auth()->user()->isAdmin()) {
+            $employees = User::where('role_id', User::ROLE_EMPLOYEE)->get();
+        } else {
+            $employees = User::where('department_id', auth()->user()->department_id)->where('role_id', User::ROLE_EMPLOYEE)->get();
+        }
+        
         $created = 0;
         $skipped = 0;
+        $errors = 0;
         
         foreach ($employees as $employee) {
             $exists = Payroll::where('employee_id', $employee->id)->where('month', $month)->where('year', $year)->exists();
             
             if (!$exists) {
-                $contract = Contract::where('employee_id', $employee->id)->whereNull('end_date')->first();
+                $contract = Contract::where('employee_id', $employee->id)->where(function($query) {
+                        $query->whereNull('end_date')->orWhere('end_date', '>', now());
+                    })->first();
                 
                 if ($contract) {
-                    $overtimeHours = $this->calculateOvertimeHours($employee->id, $month, $year);
-                    
-                    Payroll::create([
-                        'employee_id' => $employee->id,
-                        'month' => $month,
-                        'year' => $year,
-                        'base_salary' => $contract->base_salary,
-                        'overtime_hours' => $overtimeHours,
-                        'bonuses' => 0,
-                        'allowances' => 0,
-                        'deductions' => 0,
-                        'status' => 'generated',
-                        'net_pay' => $contract->base_salary
-                    ]);
-                    $created++;
+                    try {
+                        $overtimeHours = $this->calculateOvertimeHours($employee->id, $month, $year);
+                        
+                        Payroll::create([
+                            'employee_id' => $employee->id,
+                            'month' => $month,
+                            'year' => $year,
+                            'base_salary' => $contract->base_salary,
+                            'overtime_hours' => $overtimeHours,
+                            'bonuses' => 0,
+                            'allowances' => 0,
+                            'deductions' => 0,
+                            'status' => 'generated',
+                            'net_pay' => $contract->base_salary
+                        ]);
+                        $created++;
+                    } catch (\Exception $e) {
+                        $errors++;
+                        \Log::error("Failed to generate payroll for employee {$employee->id}: " . $e->getMessage());
+                    }
                 } else {
                     $skipped++;
                 }
@@ -234,7 +252,12 @@ class PayrollController extends Controller
             }
         }
         
-        return redirect()->route('payrolls.index')->with('success', "Generated $created payrolls. Skipped $skipped");
+        $message = "Payroll generation completed! Created: $created, Skipped: $skipped";
+        if ($errors > 0) {
+            $message .= ", Errors: $errors";
+        }
+        
+        return redirect()->route('payrolls.index', ['month' => $month, 'year' => $year])->with('success', $message);
     }
 
     public function approve(Payroll $payroll)
@@ -272,8 +295,8 @@ class PayrollController extends Controller
         $total = $data['base_salary'] + ($data['bonuses'] ?? 0) + ($data['allowances'] ?? 0);
 
         if (isset($data['overtime_hours']) && $data['overtime_hours'] > 0) {
-            $dailyRate = $data['base_salary'] / 22;
-            $hourlyRate = $dailyRate / 8;
+            $dailyRate = $data['base_salary'] > 0 ? $data['base_salary'] / 22 : 0;
+            $hourlyRate = $dailyRate > 0 ? $dailyRate / 8 : 0;
             $total += $data['overtime_hours'] * $hourlyRate * 1.5;
         }
         

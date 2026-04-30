@@ -15,7 +15,7 @@ trait Auditable
         });
 
         static::updated(function ($model) {
-            if (get_class($model) !== 'App\Models\AuditLog') {
+            if (!$model instanceof \App\Models\AuditLog) {
                 $old = $model->getOriginal();
                 $new = $model->getAttributes();
                 
@@ -38,7 +38,7 @@ trait Auditable
         });
 
         static::deleted(function ($model) {
-            if (get_class($model) !== 'App\Models\AuditLog') {
+            if (!$model instanceof \App\Models\AuditLog) {
                 AuditLogService::logDelete(class_basename($model), $model);
             }
         });

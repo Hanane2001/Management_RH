@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Models\User;
 
 class CheckRole
 {
@@ -21,17 +22,17 @@ class CheckRole
 
         $userRole = auth()->user()->role_id;
         foreach ($roles as $role) {
-            $roleId = match($role) {
-                'admin' => 1,
-                'manager' => 2,
-                'employ' => 3,
+            $roleId = match(strtolower($role)) {
+                'admin' => User::ROLE_ADMIN,
+                'manager' => User::ROLE_MANAGER,
+                'employ' => User::ROLE_EMPLOYEE,
                 default => null
             };
             
-            if ($userRole === $roleId) {
+            if ($roleId !== null && $userRole === $roleId) {
                 return $next($request);
             }
         }
-        abort(403, 'Access denied');
+        abort(403, 'Access denied - Insufficient role permissions');
     }
 }

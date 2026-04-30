@@ -61,10 +61,13 @@ class DepartmentController extends Controller
      */
     public function edit(string $id)
     {
-        if (Gate::denies('update', Department::class)) {
+        // if (Gate::denies('update', Department::class)) {
+        //     abort(403);
+        // }
+        $department = Department::findOrFail($id);
+        if (Gate::denies('update', $department)) {
             abort(403);
         }
-        $department = Department::findOrFail($id);
         $managers = User::where('role_id', User::ROLE_MANAGER)->get();
         return view('department.edit', compact('department', 'managers'));
     }
@@ -74,10 +77,13 @@ class DepartmentController extends Controller
      */
     public function update(UpdateDepartmentRequest $request, string $id)
     {
-        if (Gate::denies('update', Department::class)) {
+        // if (Gate::denies('update', Department::class)) {
+        //     abort(403);
+        // }
+        $department = Department::findOrFail($id);
+        if (Gate::denies('update', $department)) {
             abort(403);
         }
-        $department = Department::findOrFail($id);
         $department->update($request->validated());
         return redirect()->route('departments.index')->with('success', 'Department updated successfully');
     }
@@ -87,10 +93,13 @@ class DepartmentController extends Controller
      */
     public function destroy(string $id)
     {
-        if (Gate::denies('delete', Department::class)) {
+        // if (Gate::denies('delete', Department::class)) {
+        //     abort(403);
+        // }
+        $department = Department::findOrFail($id);
+        if (Gate::denies('update', $department)) {
             abort(403);
         }
-        $department = Department::findOrFail($id);
         if ($department->employees()->count() > 0) {
             return back()->with('error', 'Cannot delete department with employees');
         }

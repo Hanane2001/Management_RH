@@ -228,9 +228,14 @@
 <div class="container-fluid">
     <div class="page-header">
         <h1 class="page-title">Leave Requests</h1>
-        <a href="{{ route('leaves.create') }}" class="btn-add">
-            <i class="fas fa-plus"></i> Request Leave
-        </a>
+        <div style="display: flex; gap: 10px;">
+            <a href="{{ route('leave-balances.my') }}" class="btn-add" style="background: #10B981;">
+                <i class="fas fa-chart-line"></i> My Balance
+            </a>
+            <a href="{{ route('leaves.create') }}" class="btn-add">
+                <i class="fas fa-plus"></i> Request Leave
+            </a>
+        </div>
     </div>
     
     <div class="data-card">
