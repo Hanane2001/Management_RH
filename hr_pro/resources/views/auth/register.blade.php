@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - HR Management System</title>
+    <title>Register - HR_PRO</title>
     
     <!-- Fonts -->
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800|roboto:400,500,700" rel="stylesheet" />
@@ -200,7 +200,7 @@
         <div class="register-card">
             <div class="card-header">
                 <h1>Create Account</h1>
-                <p>Join HR Management System today</p>
+                <p>Join HR_PRO today</p>
             </div>
             <div class="card-body">
                 @if(session('info'))

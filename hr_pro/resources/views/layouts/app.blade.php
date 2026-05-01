@@ -241,7 +241,7 @@
     
     <div class="sidebar" id="sidebar">
         <div class="sidebar-brand">
-            <h3>HR System</h3>
+            <h3>HR_PRO</h3>
             <small>{{ auth()->user()->getFullName() }}</small>
         </div>
         

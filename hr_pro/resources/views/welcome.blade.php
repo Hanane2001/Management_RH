@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{{ config('app.name', 'HR Management System') }}</title>
+    <title>{{ config('app.name', 'HR_PRO') }}</title>
     
     <!-- Fonts -->
     <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800|roboto:400,500,700" rel="stylesheet" />
@@ -187,7 +187,7 @@
     <div class="container">
         <div class="hero-section">
             <div class="hero-content">
-                <h1>HR Management System</h1>
+                <h1>HR_PRO</h1>
                 <p>Streamline your human resources management with our comprehensive solution. Manage employees, leaves, contracts, and more efficiently.</p>
                 
                 <div class="features">
